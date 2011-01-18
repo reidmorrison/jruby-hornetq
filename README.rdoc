@@ -1,0 +1,28 @@
+= jruby-hornetq
+
+* http://github.com/ClarityServices/jruby-hornetq
+
+== DESCRIPTION:
+
+Jruby interface to hornetQ
+
+== FEATURES/PROBLEMS:
+
+== INSTALL:
+
+  gem install jruby-hornetq
+
+== EXAMPLE USAGE:
+
+Starting up a standalone hornetq server:
+
+  bin/hornetq_server examples/standalone_server.yml
+
+Starting up a backup/live combination
+
+  bin/hornetq_server examples/backup_server.yml
+  bin/hornetq_server examples/live_server.yml
+
+== Copyright
+
+Copyright (c) 2011 Clarity Services. See LICENSE (MIT) for details.
