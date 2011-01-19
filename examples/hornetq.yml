@@ -4,7 +4,7 @@ development:
     :uri: hornetq://localhost,192.168.0.22
     :failover_on_initial_connection: true
     :failover_on_server_shutdown: true
-    # 5 Connection attempts takes about 18 seconds before it switches to the backup server
+    # 5 Connection attempts takes about 16 seconds before it switches to the backup server
     :reconnect_attempts: 5
   :session:
     :username: guest

@@ -1,4 +1,5 @@
 require 'uri'
+
 module HornetQClient
 
   # Import Message Constants
@@ -335,6 +336,11 @@ module HornetQClient
       end
     end
 
+    # Create a Session pool
+    def create_session_pool(parms={})
+      SessionPool.new(self, parms)
+    end
+    
     # Close Factory connections
     def close
       @factory.close if @factory

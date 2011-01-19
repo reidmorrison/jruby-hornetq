@@ -6,7 +6,8 @@
 # Allow examples to be run in-place without requiring a gem install
 $LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
 
-require'yaml'
+require 'rubygems'
+require 'yaml'
 require 'hornetq'
 
 # Arguments: 'number of threads' 'timeout'

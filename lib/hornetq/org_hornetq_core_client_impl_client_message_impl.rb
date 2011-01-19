@@ -1,4 +1,6 @@
-#module Java::org.hornetq.api.core::Message
+
+# Cannot add to the interface Java::org.hornetq.api.core::Message because these
+# methods access instance variables in the Java object
 class Java::OrgHornetqCoreClientImpl::ClientMessageImpl
   # Attributes
   # attr_accessor :address, :type, :durable, :expiration, :priority, :timestamp, :user_id
@@ -57,6 +59,8 @@ class Java::OrgHornetqCoreClientImpl::ClientMessageImpl
   # Write data into the message body
   # 
   # Data is automatically converted based on the message type
+  # 
+  # TODO Support non-string Types
   def <<(data)
     case type
     when Java::org.hornetq.api.core.Message::BYTES_TYPE  #4

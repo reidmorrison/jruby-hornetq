@@ -6,6 +6,7 @@
 # Allow examples to be run in-place without requiring a gem install
 $LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
 
+require 'rubygems'
 require 'yaml'
 require 'hornetq'
 
@@ -44,5 +45,5 @@ HornetQClient::Factory.create_session(config) do |session|
   
   requestor.close
   duration = Time.now - start_time
-  puts "\nDelivered #{count} messages in #{duration} seconds at #{count/duration} messages per second"
+  puts "\nMade #{count} calls in #{duration} seconds at #{count/duration} messages per second"
 end
