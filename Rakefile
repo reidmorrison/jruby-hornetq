@@ -8,7 +8,7 @@ desc "Build gem"
 task :gem  do |t|
   gemspec = Gem::Specification.new do |s|
     s.name = 'jruby-hornetq'
-    s.version = '0.1.0.alpha'
+    s.version = '0.2.0.alpha'
     s.author = 'Reid Morrison'
     s.email = 'rubywmq@gmail.com'
     s.homepage = 'http://www.reidmorrison.com/'
@@ -17,6 +17,7 @@ task :gem  do |t|
     s.summary = 'JRuby interface into HornetQ'
     s.files = FileList["./**/*"].exclude('*.gem', './nbproject/*').map{|f| f.sub(/^\.\//, '')}
     s.has_rdoc = true
+    s.add_dependency "gene_pool", "~> 1.1.1"
   end
   Gem::Builder.new(gemspec).build
 end

@@ -1,6 +1,8 @@
 jruby-hornetq
 =============
 
+* http://github.com/ClarityServices/jruby-hornetq
+
 ### WARNING: Alpha code!!
 
 This code should only be used for prototyping at this time, since breaking
@@ -20,6 +22,10 @@ introduced had the entire API been wrapped in a Ruby layer.
 
 In this way, using regular Ruby constructs a Ruby program can easily
 interact with HornetQ in a highly performant way
+
+### Install
+
+  gem install jruby-hornetq
 
 ### Important
 
@@ -134,8 +140,36 @@ Logging
 Dependencies
 ------------
 
+### JRuby
+
 jruby-hornetq has been tested against JRuby 1.5.1, but should work with any
 current JRuby version.
+
+### HornetQ
+
+The libraries required for the HornetQ Client and to start a simple Core API
+only Broker are included with the Gem.
+
+### GenePool
+ 
+GenePool is used to implement session pooling
+
+Running the Broker
+------------------
+
+Not only does jruby-hornetq make it easy to work with HornetQ from JRuby as a
+client, it also supports using JRuby to launch a Broker instance
+
+### Example Usage
+
+#### Starting up a standalone hornetq server:
+
+  bin/hornetq_server examples/standalone_server.yml
+
+#### Starting up a backup/live combination
+
+  bin/hornetq_server examples/backup_server.yml
+  bin/hornetq_server examples/live_server.yml
 
 Development
 -----------
@@ -184,12 +218,32 @@ Meta
 This project uses [Semantic Versioning][sv].
 
 
-Author
-------
+Authors
+-------
 
 Reid Morrison :: rubywmq@gmail.com :: @reidmorrison
+Brad Pardee :: bpardee@gmail.com
 
 [1]: http://help.github.com/forking/
 [2]: http://github.com/reidmorrison/jruby-hornetq/issues
 [sv]: http://semver.org/
 
+License
+-------
+
+Copyright 2011 Clarity Services, Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+jruby-hornetq includes files from HornetQ, which is also licensed under
+the Apache License, Version 2.0: http://www.jboss.org/hornetq
