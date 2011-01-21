@@ -164,12 +164,12 @@ client, it also supports using JRuby to launch a Broker instance
 
 #### Starting up a standalone hornetq server:
 
-  bin/hornetq_server examples/standalone_server.yml
+  bin/hornetq_server examples/server/standalone_server.yml
 
 #### Starting up a backup/live combination
 
-  bin/hornetq_server examples/backup_server.yml
-  bin/hornetq_server examples/live_server.yml
+  bin/hornetq_server examples/server/backup_server.yml
+  bin/hornetq_server examples/server/live_server.yml
 
 Development
 -----------

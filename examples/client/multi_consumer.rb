@@ -44,7 +44,7 @@ def worker(id, session)
 end
 
 # Create a HornetQ session
-HornetQClient::Factory.create_factory(config[:connector]) do |factory|
+HornetQ::Client::Factory.create_factory(config[:connector]) do |factory|
   threads = []
   $thread_count.times do |i|
     session = factory.create_session(config[:session])

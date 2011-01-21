@@ -22,7 +22,7 @@ def worker_thread(id, session_pool)
   begin
     # Obtain a session from the pool and return when complete
     session_pool.requestor('jms.queue.ExampleQueue') do |session, requestor|
-      message = session.create_message(HornetQClient::Message::TEXT_TYPE,false)
+      message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
       message << "Request Current Time"
     
       # Send message to the queue
@@ -42,7 +42,7 @@ def worker_thread(id, session_pool)
 end
 
 # Create a HornetQ Factory 
-HornetQClient::Factory.create_factory(config[:connector]) do |factory|
+HornetQ::Client::Factory.create_factory(config[:connector]) do |factory|
   
   # Create a pool of session connections, all with the same session parameters
   # The pool is thread-safe and can be accessed concurrently by multiple threads

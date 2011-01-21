@@ -1,12 +1,13 @@
-require 'hornetq/lib/hornetq-core-client.jar'
-require 'hornetq/lib/hornetq-core.jar'
-require 'hornetq/lib/netty.jar'
-require 'hornetq/org_hornetq_api_core_client_client_session'
-require 'hornetq/org_hornetq_core_client_impl_client_message_impl'
-require 'hornetq/org_hornetq_utils_typed_properties'
-require 'hornetq/org_hornetq_core_server_hornet_q_server'
-require 'hornetq/org_hornetq_core_server_hornet_q_servers'
-require 'hornetq/hornet_q_client'
-require 'hornetq/client_requestor'
-require 'hornetq/client_server'
-require 'hornetq/session_pool'
+require 'hornetq/server'
+require 'hornetq/client'
+
+module HornetQ
+  # Allow override of our included jars so we don't have to keep up with hornetq releases
+  def self.require_jar(jar_name)
+    if ENV['HORNETQ_HOME']
+      require "#{ENV['HORNETQ_HOME']}/lib/#{jar_name}.jar"
+    else
+      require "hornetq/java/#{jar_name}.jar"
+    end
+  end
+end
