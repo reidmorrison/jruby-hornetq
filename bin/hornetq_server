@@ -1,15 +1,28 @@
 #!/usr/bin/env jruby
 
-require 'yaml'
 require 'rubygems'
 require 'hornetq'
 
 unless ARGV[0]
-  $stderr.puts "Usage: hornetq_server <yml-file>"
+  $stderr.puts <<EOF
+
+Usage: hornetq_server <uri>
+
+  Examples:
+
+    # start standalone server on port #{HornetQ::DEFAULT_NETTY_PORT}
+    hornetq_server hornetq://0.0.0.0/?data_directory=./data
+
+    # start backup server
+    hornetq_server hornetq://0.0.0.0:5446/?backup=true&data_directory=./data_backup
+
+    # start live server attached to backup on same server
+    hornetq_server hornetq://0.0.0.0:5445,localhost:5446/?data_directory=./data
+
+EOF
   exit 1
 end
 
-config = YAML.load_file(ARGV[0])
-server = HornetQ::Server::Factory.create_server(config)
+server = HornetQ::Server::Factory.create_server(ARGV[0])
 server.enable_shutdown_on_signal
 server.start

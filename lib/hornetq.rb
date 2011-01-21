@@ -1,7 +1,16 @@
 require 'hornetq/server'
 require 'hornetq/client'
+require 'hornetq/uri'
 
 module HornetQ
+
+  # Netty Class name
+  NETTY_CONNECTOR_CLASS_NAME = 'org.hornetq.core.remoting.impl.netty.NettyConnectorFactory'
+  NETTY_ACCEPTOR_CLASS_NAME  = 'org.hornetq.core.remoting.impl.netty.NettyAcceptorFactory'
+  INVM_CLASS_NAME            = 'org.hornetq.core.remoting.impl.invm.InVMAcceptorFactory'
+
+  DEFAULT_NETTY_PORT = 5445
+
   # Allow override of our included jars so we don't have to keep up with hornetq releases
   def self.require_jar(jar_name)
     if ENV['HORNETQ_HOME']
@@ -9,5 +18,10 @@ module HornetQ
     else
       require "hornetq/java/#{jar_name}.jar"
     end
+  end
+
+  def self.netty_port(port)
+    port ||= DEFAULT_NETTY_PORT
+    return java.lang.Integer.new(port)
   end
 end

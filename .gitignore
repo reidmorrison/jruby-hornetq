@@ -2,3 +2,5 @@
 nbproject/*
 *.gem
 .idea
+data
+data_backup

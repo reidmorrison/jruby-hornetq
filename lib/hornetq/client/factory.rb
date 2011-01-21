@@ -5,11 +5,6 @@ module HornetQ::Client
   # Import Message Constants
   #import Java::org.hornetq.api.core::Message
 
-  # Netty Class name
-  NETTY_CLASS_NAME ='org.hornetq.core.remoting.impl.netty.NettyConnectorFactory'
-  INVM_CLASS_NAME = 'org.hornetq.core.remoting.impl.invm.InVMAcceptorFactory'
-  DEFAULT_NETTY_PORT = 5445
-
   class Factory
     # Create a new Factory from which sessions can be created
     #
@@ -112,71 +107,8 @@ module HornetQ::Client
 
       HornetQ::Client.load_requirements
 
-      scheme, userinfo, host, port, registry, path, opaque, query, fragment = URI.split(uri)
-      raise InvalidURIError,"bad URI(only scheme hornetq:// is supported): #{uri}" unless scheme == 'hornetq'
-      backup_host = backup_port = nil
-
-      # Check for multiple server names
-      if registry
-        host, backup_host = registry.split(',')
-        host, port = host.split(':')
-        backup_host, backup_port = backup_host.split(':')
-      end
-
-      # Extract settings passed in query
-      settings = {}
-      if query
-        query.split(';').each do |i|
-          key, value = i.split('=')
-          settings[key] = value
-        end
-      end
-
-      # Determine transport protocol
-      factory = nil
-      # In-VM Transport has no fail-over or additional parameters
-      if host == 'invm'
-        transport = Java::org.hornetq.api.core.TransportConfiguration.new(INVM_CLASS_NAME)
-        factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport)
-      elsif settings[:protocol]
-        # Auto-Discovery just has a host name and port
-        if settings[:protocol] == 'discovery'
-          factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(host, port)
-        elsif settings[:protocol] != 'netty'
-          raise "Unknown HornetQ protocol:#{settings[:protocol]}"
-        end
-      end
-
-      # Unless already created, then the factory will use the netty protocol
-      unless factory
-        # Primary Transport
-        raise "Mandatory hostname missing in :uri" unless host
-        port ||= DEFAULT_NETTY_PORT
-        transport = Java::org.hornetq.api.core.TransportConfiguration.new(NETTY_CLASS_NAME, {'host' => host, 'port' => Java::java.lang.Integer.new(port)})
-
-        # Check for backup server connection information
-        if backup_host
-          backup_port ||= DEFAULT_NETTY_PORT
-          backup_transport = Java::org.hornetq.api.core.TransportConfiguration.new(NETTY_CLASS_NAME, {'host' => backup_host, 'port' => Java::java.lang.Integer.new(backup_port)})
-          factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport, backup_transport)
-        else
-          factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport)
-        end
-      end
-
-      # If any other options were supplied, apply them to the created Factory instance
-      parms.each_pair do |key, val|
-        next if key == :uri
-        method = key.to_s+'='
-        if factory.respond_to? method
-          factory.send method, val
-          #puts "Debug: #{key} = #{factory.send key}" if factory.respond_to? key.to_sym
-        else
-          puts "Warning: Option:#{key}, with value:#{val} is invalid and being ignored"
-        end
-      end
-
-      @factory = factory
+      hornetq_uri = HornetQ::URI.new(uri)
+      @factory = hornetq_uri.client_factory
     end
 
     # Create a new HornetQ session
