@@ -3,7 +3,7 @@ require 'uri'
 module HornetQ::Client
 
   # Import Message Constants
-  import Java::org.hornetq.api.core.Message
+  #import Java::org.hornetq.api.core.Message
 
   # Netty Class name
   NETTY_CLASS_NAME ='org.hornetq.core.remoting.impl.netty.NettyConnectorFactory'
@@ -110,7 +110,7 @@ module HornetQ::Client
       raise "Missing :uri under :connector in config" unless uri = parms[:uri]
       # TODO: Support :uri as an array for cluster configurations
 
-      HornetQ.load_requirements
+      HornetQ::Client.load_requirements
 
       scheme, userinfo, host, port, registry, path, opaque, query, fragment = URI.split(uri)
       raise InvalidURIError,"bad URI(only scheme hornetq:// is supported): #{uri}" unless scheme == 'hornetq'

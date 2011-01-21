@@ -1,6 +1,7 @@
 #!/usr/bin/env jruby
 
 require 'yaml'
+require 'rubygems'
 require 'hornetq'
 
 unless ARGV[0]
@@ -9,6 +10,6 @@ unless ARGV[0]
 end
 
 config = YAML.load_file(ARGV[0])
-server = Java::org.hornetq.core.server.HornetQServers.create_from_yaml_file(ARGV[0])
+server = HornetQ::Server::Factory.create_server(config)
 server.enable_shutdown_on_signal
 server.start

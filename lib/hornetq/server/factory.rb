@@ -5,7 +5,7 @@ module HornetQ::Server
     end
 
     def self.create_server(server_config)
-      load_requirements
+      HornetQ::Server.load_requirements
 
       data_directory = server_config['data_directory'] || './data'
       host = server_config['host'] || 'localhost'
@@ -62,7 +62,7 @@ module HornetQ::Server
         puts 'standalone'
       end
 
-      return Java::org.hornetq.core.config.impl.ConfigurationImpl.newHornetQServer(config)
+      return Java::org.hornetq.core.server.HornetQServers.newHornetQServer(config)
     end
 
   end

@@ -1,6 +1,6 @@
 require 'gene_pool'
 
-module Hornet::QClient
+module HornetQ::Client
   # Since a Session can only be used by one thread at a time, we could create
   # a Session for every thread. That could result in excessive unused Sessions.
   # An alternative is to create a pool of sessions that can be shared by
