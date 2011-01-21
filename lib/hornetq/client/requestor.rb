@@ -1,7 +1,7 @@
-module HornetQClient
+module HornetQ::Client
 
   # Send a request to a server and wait for a reply  
-  class ClientRequestor
+  class Requestor
     def initialize(session, request_address)
       @session = session
       @producer = session.create_producer(request_address)

@@ -18,7 +18,7 @@ class Java::OrgHornetqCoreClientImpl::ClientMessageImpl
   # Set the Reply To Queue Name
   #  When supplied, the consumer of the message is expected to send a response to the
   #  specified queue. However, this is by convention, so no response is guaranteed
-  # Note: Rather than set this directly, consider creating a ClientRequestor:
+  # Note: Rather than set this directly, consider creating a Client::Requestor:
   #     requestor = session.create_requestor('Request Queue')
   #
   def reply_to_queue_name=(name)

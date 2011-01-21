@@ -16,7 +16,7 @@ timeout = (ARGV[1] || 30000).to_i
 config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')['development']
 
 # Create a HornetQ session
-HornetQClient::Factory.create_session(config) do |session|
+HornetQ::Client::Factory.create_session(config) do |session|
   #session.create_queue('Example', 'Example', true)
   requestor = session.create_requestor('jms.queue.ExampleQueue')
   session.start
@@ -24,7 +24,7 @@ HornetQClient::Factory.create_session(config) do |session|
 
   puts "Sending messages"
   count.times do |i|
-    message = session.create_message(HornetQClient::Message::TEXT_TYPE,false)
+    message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
     # Set the message body text
     message << "Request Current Time"
     # Set the user managed message id

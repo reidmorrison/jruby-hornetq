@@ -1,6 +1,6 @@
 require 'uri'
 
-module HornetQClient
+module HornetQ::Client
 
   # Import Message Constants
   import Java::org.hornetq.api.core.Message
@@ -16,7 +16,7 @@ module HornetQClient
     # Parameters:
     # * a Hash consisting of one or more of the named parameters
     # * Summary of parameters and their default values
-    #  HornetQClient::Factory.new(
+    #  HornetQ::Client::Factory.new(
     #    :uri                            => 'hornetq://localhost',
     #    :ack_batch_size                 => ,
     #    :auto_group                     => ,
@@ -110,6 +110,8 @@ module HornetQClient
       raise "Missing :uri under :connector in config" unless uri = parms[:uri]
       # TODO: Support :uri as an array for cluster configurations
 
+      HornetQ.load_requirements
+
       scheme, userinfo, host, port, registry, path, opaque, query, fragment = URI.split(uri)
       raise InvalidURIError,"bad URI(only scheme hornetq:// is supported): #{uri}" unless scheme == 'hornetq'
       backup_host = backup_port = nil
@@ -188,14 +190,14 @@ module HornetQClient
     #
     # Note:
     # * The returned session MUST be closed once complete
-    #     factory = HornetQClient::Factory.new(:uri => 'hornetq://localhost/')
+    #     factory = HornetQ::Client::Factory.new(:uri => 'hornetq://localhost/')
     #     session = factory.create_session
     #       ...
     #     session.close
     #     factory.close
-    # * It is recommended to rather call HornetQClient::Factory.create_session
+    # * It is recommended to rather call HornetQ::Client::Factory.create_session
     #   so that all resouces are closed automatically
-    #     HornetQClient::Factory.create_session(:uri => 'hornetq://localhost/') do |session|
+    #     HornetQ::Client::Factory.create_session(:uri => 'hornetq://localhost/') do |session|
     #       ...
     #     end
     #
@@ -212,7 +214,7 @@ module HornetQClient
     #
     #   factory = nil
     #   begin
-    #     factory = HornetQClient::Factory.new(:uri => 'hornetq://localhost/')
+    #     factory = HornetQ::Client::Factory.new(:uri => 'hornetq://localhost/')
     #     factory.create_session do |session|
     #
     #       # Create a new queue
@@ -222,7 +224,7 @@ module HornetQClient
     #       producer = session.create_producer('Example')
     #
     #       # Create a Text Message
-    #       message = session.create_message(HornetQClient::Message::TEXT_TYPE,true)
+    #       message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,true)
     #       message << 'Hello World'
     #
     #       # Send the message
@@ -238,7 +240,7 @@ module HornetQClient
     #   factory = nil
     #   session = nil
     #   begin
-    #     factory = HornetQClient::Factory.new(:uri => 'hornetq://localhost/')
+    #     factory = HornetQ::Client::Factory.new(:uri => 'hornetq://localhost/')
     #     session = factory.create_session
     #
     #     # Create a new queue
@@ -248,7 +250,7 @@ module HornetQClient
     #     producer = session.create_producer('Example')
     #
     #     # Create a Text Message
-    #     message = session.create_message(HornetQClient::Message::TEXT_TYPE,true)
+    #     message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,true)
     #     message.body_buffer.write_string('Hello World')
     #
     #     # Send the message
@@ -305,7 +307,7 @@ module HornetQClient
     #    * the batch size of the acknowledgements
     #
     def create_session(parms={}, &proc)
-      raise "HornetQClient Factory Already Closed" unless @factory
+      raise "HornetQ::Client::Factory Already Closed" unless @factory
       if proc
         session = nil
         result = nil

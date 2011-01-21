@@ -1,6 +1,6 @@
 require 'gene_pool'
 
-module HornetQClient
+module Hornet::QClient
   # Since a Session can only be used by one thread at a time, we could create
   # a Session for every thread. That could result in excessive unused Sessions.
   # An alternative is to create a pool of sessions that can be shared by
@@ -15,11 +15,11 @@ module HornetQClient
   #   end
   #
   # Parameters:
-  #   see regular session parameters from: HornetQClient::Factory::create_session
+  #   see regular session parameters from: HornetQ::Client::Factory::create_session
   #
   # Additional parameters for controlling the session pool itself
   #   :pool_name         Name of the pool as it shows up in the logger.
-  #                      Default: 'HornetQClient::SessionPool'
+  #                      Default: 'HornetQ::Client::SessionPool'
   #   :pool_size         Maximum Pool Size. Default: 10
   #                      The pool only grows as needed and will never exceed
   #                      :pool_size
@@ -64,7 +64,7 @@ module HornetQClient
       # Once the block is complete the consumer is closed and the session is
       # returned to the pool.
       # 
-      # See  HornetQClient::ClientConsumer for more information on the consumer
+      # See  HornetQ::Client::ClientConsumer for more information on the consumer
       #      parameters
       #
       # Example
@@ -89,12 +89,12 @@ module HornetQClient
       # Once the block is complete the consumer is closed and the session is
       # returned to the pool.
       # 
-      # See  HornetQClient::ClientProducer for more information on the producer
+      # See  HornetQ::Client::ClientProducer for more information on the producer
       #      parameters
       #
       # Example
       #   session_pool.producer('MyAddress') do |session, producer|
-      #     message = session.create_message(HornetQClient::Message::TEXT_TYPE,false)
+      #     message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
       #     message << "#{Time.now}: ### Hello, World ###"
       #     producer.send(message)
       #   end
@@ -110,12 +110,12 @@ module HornetQClient
         end
       end
       
-      # Obtain a session from the pool and create a ClientRequestor. 
+      # Obtain a session from the pool and create a Client::Requestor.
       # Pass both into the supplied block. 
       # Once the block is complete the requestor is closed and the session is
       # returned to the pool.
       # 
-      # See  HornetQClient::ClientRequestor for more information on the requestor
+      # See  HornetQ::Client::Requestor for more information on the requestor
       #
       # Example
       #   session_pool.requestor(parms) do |session, requestor|
@@ -133,12 +133,12 @@ module HornetQClient
         end
       end
       
-      # Obtain a session from the pool and create a ClientServer. 
+      # Obtain a session from the pool and create a Client::Server.
       # Pass both into the supplied block. 
       # Once the block is complete the requestor is closed and the session is
       # returned to the pool.
       # 
-      # See  HornetQClient::ClientServer for more information on the server
+      # See  HornetQ::Client::Server for more information on the server
       #
       # Example
       #   session_pool.server(queue, timeout) do |session, server|

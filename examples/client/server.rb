@@ -15,7 +15,7 @@ timeout = (ARGV[0] || 60000).to_i
 config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')['development']
 
 # Create a HornetQ session
-HornetQClient::Factory.create_session(config) do |session|
+HornetQ::Client::Factory.create_session(config) do |session|
   server = session.create_server('jms.queue.ExampleQueue', timeout)
   session.start
   
@@ -30,7 +30,7 @@ HornetQClient::Factory.create_session(config) do |session|
     #print "."
     puts "#{count}" if count%1000 == 0
     puts "Durable" if request_message.durable
-    reply_message = session.create_message(HornetQClient::Message::TEXT_TYPE, false)
+    reply_message = session.create_message(HornetQ::Client::Message::TEXT_TYPE, false)
     reply_message << "Test Response"
     reply_message
   end

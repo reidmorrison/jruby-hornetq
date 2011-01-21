@@ -1,13 +1,5 @@
 require 'yaml'
 
-if ENV['HORNETQ_HOME']
-  require "#{ENV['HORNETQ_HOME']}/lib/hornetq-core.jar"
-  require "#{ENV['HORNETQ_HOME']}/lib/netty.jar"
-else
-  require 'hornetq/lib/hornetq-core.jar'
-  require 'hornetq/lib/netty.jar'
-end
-
 class Java::org.hornetq.core.server::HornetQServers
   def self.create_from_yaml_file(yaml_file)
     yaml = YAML.load_file(yaml_file)
