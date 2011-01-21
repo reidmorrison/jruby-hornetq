@@ -3,7 +3,7 @@ require 'uri'
 module HornetQClient
 
   # Import Message Constants
-  import Java::org.hornetq.api.core.Message
+  import Java::org.hornetq.api.core::Message
 
   # Netty Class name
   NETTY_CLASS_NAME ='org.hornetq.core.remoting.impl.netty.NettyConnectorFactory'

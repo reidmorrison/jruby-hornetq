@@ -38,7 +38,7 @@ module HornetQClient
     def initialize(factory, parms={})
       # Save Session parms since it will be used every time a new session is
       # created in the pool
-      session_parms = parms.dup
+      session_parms = parms.dup unless parms.nil
       # TODO Use same logger as HornetQ?
       # TODO How to shrink unused connections?
       @pool = GenePool.new(
@@ -56,7 +56,7 @@ module HornetQClient
       # Obtain a session from the pool and pass it to the supplied block
       # The session is automatically returned to the pool once the block completes
       def session(&block)
-        @pool.with_connection {|s| block.call(s)}
+        @pool.with_connection &block
       end
 
       # Obtain a session from the pool and create a ClientConsumer. 
