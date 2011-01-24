@@ -2,9 +2,6 @@ require 'uri'
 
 module HornetQ::Client
 
-  # Import Message Constants
-  #import Java::org.hornetq.api.core::Message
-
   class Factory
     # Create a new Factory from which sessions can be created
     #

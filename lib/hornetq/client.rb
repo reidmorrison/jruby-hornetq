@@ -7,6 +7,9 @@ module HornetQ
       require 'hornetq/org_hornetq_api_core_client_client_session'
       require 'hornetq/org_hornetq_core_client_impl_client_message_impl'
       require 'hornetq/org_hornetq_utils_typed_properties'
+
+      # Import Message Constants
+      import Java::org.hornetq.api.core::Message
     end
   end
 end
