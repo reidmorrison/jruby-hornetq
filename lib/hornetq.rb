@@ -1,3 +1,4 @@
+include Java
 require 'hornetq/server'
 require 'hornetq/client'
 require 'hornetq/uri'
@@ -9,7 +10,8 @@ module HornetQ
   NETTY_ACCEPTOR_CLASS_NAME  = 'org.hornetq.core.remoting.impl.netty.NettyAcceptorFactory'
   INVM_CLASS_NAME            = 'org.hornetq.core.remoting.impl.invm.InVMAcceptorFactory'
 
-  DEFAULT_NETTY_PORT = 5445
+  DEFAULT_NETTY_PORT     = java.lang.Integer.new(5445)
+  DEFAULT_DATA_DIRECTORY = './data'
 
   # Allow override of our included jars so we don't have to keep up with hornetq releases
   def self.require_jar(jar_name)

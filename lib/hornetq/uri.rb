@@ -15,16 +15,22 @@ module HornetQ
       raise 'Mandatory hostname missing in uri' if @host.empty?
       if @host =~ /(.*?)(\/.*)/
         @host, @path = $1, $2
+      else
+        @path = '/'
       end
       if @host =~ /(.*),(.*)/
         @host, @backup_host = $1, $2
       end
       if @host =~ /(.*):(.*)/
-        @host, @port = $1, $2
+        @host, @port = $1, HornetQ.netty_port($2)
+      else
+        @port = HornetQ::DEFAULT_NETTY_PORT
       end
       if @backup_host
         if @backup_host =~ /(.*):(.*)/
-          @backup_host, @backup_port = $1, $2
+          @backup_host, @backup_port = $1, HornetQ.netty_port($2)
+        else
+          @backup_port = HornetQ::DEFAULT_NETTY_PORT
         end
       end
       query = nil
@@ -65,11 +71,11 @@ module HornetQ
       # Unless already created, then the factory will use the netty protocol
       unless factory
         # Primary Transport
-        transport = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_CONNECTOR_CLASS_NAME, {'host' => @host, 'port' => HornetQ.netty_port(@port)})
+        transport = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_CONNECTOR_CLASS_NAME, {'host' => @host, 'port' => @port })
 
         # Check for backup server connection information
         if @backup_host
-          backup_transport = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_CONNECTOR_CLASS_NAME, {'host' => @backup_host, 'port' => HornetQ.netty_port(@backup_port)})
+          backup_transport = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_CONNECTOR_CLASS_NAME, {'host' => @backup_host, 'port' => @backup_port })
           factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport, backup_transport)
         else
           factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport)
@@ -91,7 +97,6 @@ module HornetQ
     end
 
     def create_server
-      data_directory = @settings[:data_directory] || './data'
       config = Java::org.hornetq.core.config.impl.ConfigurationImpl.new
       config.persistence_enabled = false
       config.security_enabled = false
@@ -110,7 +115,7 @@ module HornetQ
 
       transport_conf_params = java.util.HashMap.new
       transport_conf_params.put('host', host)
-      transport_conf_params.put('port', HornetQ.netty_port(@port))
+      transport_conf_params.put('port', @port)
       transport_conf = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_ACCEPTOR_CLASS_NAME, transport_conf_params);
 
       transport_conf_set = java.util.HashSet.new
@@ -118,7 +123,7 @@ module HornetQ
 
       config.acceptor_configurations = transport_conf_set
 
-      if @settings[:backup] == 'true'
+      if backup?
         puts "backup"
         config.backup = true
         config.shared_store = false
@@ -126,7 +131,7 @@ module HornetQ
         puts "live"
         backup_params = java.util.HashMap.new
         backup_params.put('host', @backup_host)
-        backup_params.put('port', HornetQ.netty_port(backup_port))
+        backup_params.put('port', @backup_port)
         #backup_params.put('reconnectAttempts', -1)
         backup_connector_conf = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_CONNECTOR_CLASS_NAME, backup_params)
 
@@ -140,6 +145,14 @@ module HornetQ
       end
 
       return Java::org.hornetq.core.server.HornetQServers.newHornetQServer(config)
+    end
+
+    def backup?
+      @settings[:backup] == 'true'
+    end
+
+    def data_directory
+      @settings[:data_directory] || HornetQ::DEFAULT_DATA_DIRECTORY
     end
   end
 end
