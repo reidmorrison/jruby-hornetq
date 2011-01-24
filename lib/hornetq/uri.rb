@@ -1,6 +1,6 @@
 module HornetQ
   class URI
-    attr_reader :scheme, :host, :port, :backup_host, :backup_port, :path
+    attr_reader :scheme, :host, :port, :backup_host, :backup_port, :path, :params
 
     # hornetq://localhost
     # hornetq://localhost,192.168.0.22
@@ -39,52 +39,31 @@ module HornetQ
       end
 
       # Extract settings passed in query
-      @settings = {}
+      @params = {}
       if query
         query.split('&').each do |i|
           key, value = i.split('=')
-          @settings[key.to_sym] = value
+          @params[key.to_sym] = value
         end
       end
     end
 
     def [](key)
-      @settings[key]
+      @params[key]
     end
 
-    def client_factory(parms={})
-      # Determine transport protocol
-      factory = nil
-      # In-VM Transport has no fail-over or additional parameters
-      if @host == 'invm'
-        transport = Java::org.hornetq.api.core.TransportConfiguration.new(INVM_CLASS_NAME)
-        factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport)
-      elsif @settings[:protocol]
-        # Auto-Discovery just has a host name and port
-        if @settings[:protocol] == 'discovery'
-          factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(@host, @port)
-        elsif @settings[:protocol] != 'netty'
-          raise "Unknown HornetQ protocol:#{@settings[:protocol]}"
-        end
-      end
+    def create_server(parms={})
+      # parms override settings
+      parms = @params.merge(parms)
+      config = Java::org.hornetq.core.config.impl.ConfigurationImpl.new
+      data_directory = parms[:data_directory] || HornetQ::DEFAULT_DATA_DIRECTORY
+      config.paging_directory = "#{data_directory}/paging"
+      config.bindings_directory = "#{data_directory}/bindings"
+      config.journal_directory = "#{data_directory}/journal"
+      config.large_messages_directory = "#{data_directory}/large-messages"
 
-      # Unless already created, then the factory will use the netty protocol
-      unless factory
-        # Primary Transport
-        transport = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_CONNECTOR_CLASS_NAME, {'host' => @host, 'port' => @port })
-
-        # Check for backup server connection information
-        if @backup_host
-          backup_transport = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_CONNECTOR_CLASS_NAME, {'host' => @backup_host, 'port' => @backup_port })
-          factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport, backup_transport)
-        else
-          factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport)
-        end
-      end
-
-      # If any other options were supplied, apply them to the created Factory instance
       parms.each_pair do |key, val|
-        next if key == :uri
+        next if key == :uri || key == :data_directory
         method = key.to_s+'='
         if factory.respond_to? method
           factory.send method, val
@@ -93,18 +72,9 @@ module HornetQ
           puts "Warning: Option:#{key}, with value:#{val} is invalid and being ignored"
         end
       end
-      return factory
-    end
-
-    def create_server
-      config = Java::org.hornetq.core.config.impl.ConfigurationImpl.new
       config.persistence_enabled = false
       config.security_enabled = false
-      config.paging_directory = "#{data_directory}/paging"
-      config.bindings_directory = "#{data_directory}/bindings"
-      config.journal_directory = "#{data_directory}/journal"
       config.journal_min_files = 10
-      config.large_messages_directory = "#{data_directory}/large-messages"
 
       if Java::org.hornetq.core.journal.impl.AIOSequentialFileFactory.isSupported
         config.journal_type = Java::org.hornetq.core.server.JournalType::ASYNCIO
@@ -142,11 +112,7 @@ module HornetQ
     end
 
     def backup?
-      @settings[:backup] == 'true'
-    end
-
-    def data_directory
-      @settings[:data_directory] || HornetQ::DEFAULT_DATA_DIRECTORY
+      @params[:backup] == 'true'
     end
   end
 end

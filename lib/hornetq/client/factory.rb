@@ -99,13 +99,52 @@ module HornetQ::Client
     # * :use_global_pools
 
     def initialize(parms={})
-      raise "Missing :uri under :connector in config" unless uri = parms[:uri]
+      raise "Missing :uri under :connector in config" unless parms[:uri]
       # TODO: Support :uri as an array for cluster configurations
 
       HornetQ::Client.load_requirements
 
-      hornetq_uri = HornetQ::URI.new(uri)
-      @factory = hornetq_uri.client_factory
+      uri = HornetQ::URI.new(parms[:uri])
+      parms = uri.params.merge(parms)
+      @factory = nil
+      # In-VM Transport has no fail-over or additional parameters
+      if uri.host == 'invm'
+        transport = Java::org.hornetq.api.core.TransportConfiguration.new(INVM_CLASS_NAME)
+        @factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport)
+      elsif uri[:protocol]
+        # Auto-Discovery just has a host name and port
+        if uri[:protocol] == 'discovery'
+          @factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(uri.host, uri.port)
+        elsif uri[:protocol] != 'netty'
+          raise "Unknown HornetQ protocol:#{uri[:protocol]}"
+        end
+      end
+
+      # Unless already created, then the factory will use the netty protocol
+      unless @factory
+        # Primary Transport
+        transport = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_CONNECTOR_CLASS_NAME, {'host' => uri.host, 'port' => uri.port })
+
+        # Check for backup server connection information
+        if uri.backup_host
+          backup_transport = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_CONNECTOR_CLASS_NAME, {'host' => uri.backup_host, 'port' => uri.backup_port })
+          @factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport, backup_transport)
+        else
+          @factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport)
+        end
+      end
+
+      # If any other options were supplied, apply them to the created Factory instance
+      parms.each_pair do |key, val|
+        next if key == :uri
+        method = key.to_s+'='
+        if @factory.respond_to? method
+          @factory.send method, val
+          #puts "Debug: #{key} = #{@factory.send key}" if @factory.respond_to? key.to_sym
+        else
+          puts "Warning: Option:#{key}, with value:#{val} is invalid and being ignored"
+        end
+      end
     end
 
     # Create a new HornetQ session
