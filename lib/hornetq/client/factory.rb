@@ -280,7 +280,6 @@ module HornetQ::Client
         session = nil
         result = nil
         begin
-          #session = @factory.create_session(true, true)
           session = @factory.create_session(
             parms[:username],
             parms[:password],
@@ -307,7 +306,9 @@ module HornetQ::Client
     end
 
     # Create a Session pool
+    # TODO Raise an exception when gene_pool is not available
     def create_session_pool(parms={})
+      require 'hornetq/client/session_pool'
       SessionPool.new(self, parms)
     end
     
@@ -332,6 +333,19 @@ module HornetQ::Client
         session = factory.create_session(parms[:session] || {}, &proc)
       ensure
         factory.close if factory
+      end
+    end
+    
+    # Create a new Factory along with a Session, and then start the session
+    # 
+    #  Creates a new factory and session, then passes the session to the supplied
+    #  block. Upon completion the session and factory are both closed
+    # See Factory::initialize and Factory::create_session for the list
+    #  of parameters
+    def self.start(parms={},&proc)
+      create_session(parms) do |session|
+        session.start
+        proc.call(session)
       end
     end
     

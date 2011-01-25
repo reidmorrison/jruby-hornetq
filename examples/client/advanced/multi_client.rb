@@ -4,9 +4,12 @@
 #      Typical scenario is in a Rails app when we need to do a call to a
 #      remote server and block until a response is received
 #
+# Shows how to use the session pool so that not every thread has to have its
+# own session
+#
 
 # Allow examples to be run in-place without requiring a gem install
-$LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
+$LOAD_PATH.unshift File.dirname(__FILE__) + '/../../../lib'
 
 require 'rubygems'
 require 'yaml'
