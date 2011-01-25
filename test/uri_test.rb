@@ -15,7 +15,6 @@ class URITest < Test::Unit::TestCase
       assert_equal HornetQ::DEFAULT_NETTY_PORT, uri.port
       assert_nil   uri.backup_host
       assert_equal '/', uri.path
-      assert_equal HornetQ::DEFAULT_DATA_DIRECTORY, uri.data_directory
       assert_equal false, uri.backup?
     end
 
@@ -34,7 +33,7 @@ class URITest < Test::Unit::TestCase
       assert_equal HornetQ.netty_port(1234), uri.port
       assert_nil   uri.backup_host
       assert_equal '/zulu', uri.path
-      assert_equal '../abc', uri.data_directory
+      assert_equal '../abc', uri[:data_directory]
       assert_equal false, uri.backup?
       assert_equal 'def', uri[:myval]
     end
@@ -46,7 +45,7 @@ class URITest < Test::Unit::TestCase
       assert_equal HornetQ.netty_port(5446), uri.port
       assert_nil   uri.backup_host
       assert_equal '/', uri.path
-      assert_equal './data_backup', uri.data_directory
+      assert_equal './data_backup', uri[:data_directory]
       assert_equal true, uri.backup?
     end
 
@@ -58,7 +57,6 @@ class URITest < Test::Unit::TestCase
       assert_equal 'hornetq_backup', uri.backup_host
       assert_equal HornetQ::DEFAULT_NETTY_PORT, uri.backup_port
       assert_equal '/', uri.path
-      assert_equal HornetQ::DEFAULT_DATA_DIRECTORY, uri.data_directory
       assert_equal false, uri.backup?
     end
 
@@ -70,7 +68,6 @@ class URITest < Test::Unit::TestCase
       assert_equal 'hornetq_backup', uri.backup_host
       assert_equal HornetQ.netty_port(4322), uri.backup_port
       assert_equal '/', uri.path
-      assert_equal HornetQ::DEFAULT_DATA_DIRECTORY, uri.data_directory
       assert_equal false, uri.backup?
     end
   end

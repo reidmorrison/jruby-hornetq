@@ -4,14 +4,26 @@ require 'shoulda'
 require 'hornetq'
 require 'fileutils'
 
+class MyThread < ::Thread
+  def initialize(name, &block)
+    super() do
+      begin
+        yield
+      rescue => e
+        puts("Thread #{name} died due to exception #{e.message}\n#{e.backtrace.join("\n")}")
+      end
+    end
+  end
+end
+
 class ServerFactoryTest < Test::Unit::TestCase
   context 'standalone server' do
     setup do
       @server       = nil
       @tmp_data_dir = "/tmp/data_dir/#{$$}"
-      @uri          = "hornetq://localhost:15445/?data_directory=#{@tmp_data_dir}"
-      @server_thread = Thread.new do
-        @server = HornetQ::Server::Factory.create_server(@uri)
+      @uri          = "hornetq://localhost:15445"
+      @server_thread = MyThread.new('standalone server') do
+        @server = HornetQ::Server::Factory.create_server(:uri => @uri, :data_directory => @tmp_data_dir)
         @server.start
       end
       # Give the server time to startup
@@ -64,56 +76,86 @@ class ServerFactoryTest < Test::Unit::TestCase
     setup do
       @server              = nil
       @tmp_data_dir        = "/tmp/data_dir/#{$$}"
-      @uri                 = "hornetq://localhost:15445,localhost:15446/?data_directory=#{@tmp_data_dir}"
+      @uri                 = "hornetq://localhost:15445,localhost:15446"
 
       @backup_server       = nil
-      @backup_tmp_data_dir = "/tmp/data_dir/#{$$}"
-      @backup_uri          = "hornetq://localhost:15446/?backup=true&data_directory=#{@backup_tmp_data_dir}"
+      @backup_tmp_data_dir = "/tmp/backup_data_dir/#{$$}"
+      @backup_uri          = "hornetq://localhost:15446"
 
-      @backup_server_thread = Thread.new do
-        @backup_server = HornetQ::Server::Factory.create_server(@uri)
-        @backup_server.start
+      @backup_server_thread = MyThread.new('backup server') do
+        begin
+          @backup_server = HornetQ::Server::Factory.create_server(:uri => @backup_uri, :data_directory => @backup_tmp_data_dir, :backup => true)
+          @backup_server.start
+        rescue Exception => e
+          puts "Error in backup server thread: #{e.message}\n#{e.backtrace.join("\n")}"
+        end
+      end
+      # Give the backup server time to startup
+      sleep 10
+
+      @server_thread = MyThread.new('live server') do
+        begin
+          @server = HornetQ::Server::Factory.create_server(:uri => @uri, :data_directory => @tmp_data_dir)
+          @server.start
+        rescue Exception => e
+          puts "Error in live server thread: #{e.message}\n#{e.backtrace.join("\n")}"
+        end
       end
 
-      @server_thread = Thread.new do
-        @server = HornetQ::Server::Factory.create_server(@uri)
-        @server.start
-      end
-
-      # Give the servers time to startup
-      sleep 5
+      # Give the live server time to startup
+      sleep 10
     end
 
     teardown do
       @server.stop
       @server_thread.join
       @backup_server.stop
-      @backup_server.join
-      FileUtils.rm_rf(@tmp_data_dir, @backup_tmp_data_dir)
+      @backup_server_thread.join
+      FileUtils.rm_rf([@tmp_data_dir, @backup_tmp_data_dir])
     end
 
     should 'failover to backup server w/o message loss' do
-      count      = 10
+      count      = 20
       queue_name = 'test_queue'
       config = {
-        :connector => { :uri => @uri },
+        :connector => {
+          :uri                            => @uri,
+          :failover_on_initial_connection => true,
+          :failover_on_server_shutdown    => true,
+        },
         :session   => { :username =>'guest', :password => 'guest'}
       }
 
-      # Create a HornetQ session
-      HornetQ::Client::Factory.create_session(config) do |session|
-        session.create_queue(queue_name, queue_name, true)
-        producer = session.create_producer(queue_name)
-        (1..count).each do |i|
-          message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
-          message.durable = true
-          # Set the message body text
-          message << "Message ##{i}"
-          # Send message to the queue
-          producer.send(message)
+      killer_thread = MyThread.new('killer') do
+        sleep 5
+        @server.stop
+      end
+
+      producer_thread = MyThread.new('producer') do
+        # Create a HornetQ session
+        HornetQ::Client::Factory.create_session(config) do |session|
+          session.create_queue(queue_name, queue_name, true)
+          producer = session.create_producer(queue_name)
+          (1..count).each do |i|
+            message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
+            message.durable = true
+            # Set the message body text
+            message << "Message ##{i}"
+            puts "Producing message: #{message.body}"
+            # Send message to the queue
+            begin
+              producer.send(message)
+              sleep 1
+            rescue Java::org.hornetq.api.core.HornetQException => e
+              puts "Received producer exception: #{e.message} with code=#{e.cause.getCode}"
+              retry if e.cause.getCode == Java::org.hornetq.api.core.HornetQException::UNBLOCKED
+            end
+          end
         end
       end
 
+      # Let the producer create the queue
+      sleep 2
       HornetQ::Client::Factory.create_session(config) do |session|
         consumer = session.create_consumer(queue_name)
         session.start
@@ -123,8 +165,13 @@ class ServerFactoryTest < Test::Unit::TestCase
           i += 1
           message.acknowledge
           assert_equal "Message ##{i}", message.body
+          puts "Consuming message #{message.body}"
         end
+        assert_equal count, i
       end
+
+      killer_thread.join
+      producer_thread.join
     end
   end
 end

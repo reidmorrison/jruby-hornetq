@@ -14,7 +14,7 @@ Usage: hornetq_server <uri>
     hornetq_server hornetq://0.0.0.0/?data_directory=./data
 
     # start backup server
-    hornetq_server hornetq://0.0.0.0:5446/?backup=true&data_directory=./data_backup
+    hornetq_server hornetq://0.0.0.0:5446/?backup=true\\&data_directory=./data_backup
 
     # start live server attached to backup on same server
     hornetq_server hornetq://0.0.0.0:5445,localhost:5446/?data_directory=./data
