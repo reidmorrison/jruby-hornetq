@@ -27,6 +27,11 @@ end
 # Check if the argument is a yaml file or a uri
 if ARGV[0] =~ /\.ya?ml$/
   config = YAML.load_file(ARGV[0])
+  # Allow sub items
+  (1...ARGV.size).each do |i|
+    config = config[ARGV[i]] || config[ARGV[i].to_sym]
+  end
+  puts "config=#{config.inspect}"
   server = HornetQ::Server::Factory.create_server(config)
 else
   uri = ARGV[0]
