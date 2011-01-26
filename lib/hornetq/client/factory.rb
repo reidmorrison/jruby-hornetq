@@ -98,18 +98,19 @@ module HornetQ::Client
     # * :thread_pool_max_size
     # * :use_global_pools
 
-    def initialize(parms={})
-      raise "Missing :uri under :connector in config" unless parms[:uri]
+    def initialize(params={})
+      raise "Missing :uri under :connector in config" unless params[:uri]
       # TODO: Support :uri as an array for cluster configurations
 
       HornetQ::Client.load_requirements
 
-      uri = HornetQ::URI.new(parms[:uri])
-      parms = uri.params.merge(parms)
+      uri = HornetQ::URI.new(params[:uri])
+      params = uri.params.merge(params)
       @factory = nil
       # In-VM Transport has no fail-over or additional parameters
       if uri.host == 'invm'
-        transport = Java::org.hornetq.api.core.TransportConfiguration.new(INVM_CLASS_NAME)
+        HornetQ.require_jar 'hornetq-core'
+        transport = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::INVM_CLASS_NAME)
         @factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport)
       elsif uri[:protocol]
         # Auto-Discovery just has a host name and port
@@ -135,7 +136,7 @@ module HornetQ::Client
       end
 
       # If any other options were supplied, apply them to the created Factory instance
-      parms.each_pair do |key, val|
+      params.each_pair do |key, val|
         next if key == :uri
         method = key.to_s+'='
         if @factory.respond_to? method
