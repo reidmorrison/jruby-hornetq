@@ -38,7 +38,7 @@ module HornetQ::Client
     def initialize(factory, parms={})
       # Save Session parms since it will be used every time a new session is
       # created in the pool
-      session_parms = parms.dup unless parms.nil
+      session_parms = parms.dup unless parms.nil?
       # TODO Use same logger as HornetQ?
       # TODO How to shrink unused connections?
       @pool = GenePool.new(

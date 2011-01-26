@@ -2,9 +2,17 @@
 # HornetQ Batch Requestor:
 #      Submit a batch of requests and wait for replies
 #
+# This is an advanced use case where the client submits requests in a controlled
+# fashion. The alternative would be just to submit all requests at the same time,
+# however then it becomes extremely difficult to pull back submitted requests
+# if say 80% of the first say 100 requests fail.
+#
+# This sample sends a total of 100 requests in batches of 10.
+# One thread sends requests and the other processes replies.
+# Once 80% of the replies are back, it will send the next batch
 
 # Allow examples to be run in-place without requiring a gem install
-$LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
+$LOAD_PATH.unshift File.dirname(__FILE__) + '/../../../lib'
 
 require 'rubygems'
 require 'yaml'
@@ -13,7 +21,6 @@ require 'sync'
 
 total_count = (ARGV[0] || 100).to_i
 batching_size = (ARGV[1] || 10).to_i
-timeout = (ARGV[2] || 10000).to_i
 request_address = 'jms.queue.ExampleQueue'
 
 config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')['development']

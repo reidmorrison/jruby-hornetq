@@ -111,13 +111,95 @@ Producer-Consumer
 
 Producer: Write messages to a queue:
 
-  ....
+    require 'rubygems'
+    require 'hornetq'
+    
+    HornetQ::Client::Factory.create_session(:connector=> {:uri => 'hornetq://localhost'}) do |session|
+      # Create Producer so that we can send messages to the Address 'jms.queue.ExampleQueue'
+      producer = session.create_producer('jms.queue.ExampleQueue')
+      
+      # Create a non-durable message to send
+      message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
+      message << "#{Time.now}: ### Hello, World ###"
+      
+      producer.send(message)
+    end
+
 
 Consumer: Read message from a queue: 
-  ....
+
+    require 'rubygems'
+    require 'hornetq'
+    
+    HornetQ::Client::Factory.start(:connector=> {:uri => 'hornetq://localhost'}) do |session|
+      consumer = session.create_consumer('jms.queue.ExampleQueue')
+      
+      # Receive a single message, return immediately if no message available
+      if message = consumer.receive_immediate
+        puts "Received:[#{message.body}]"
+        message.acknowledge
+      else
+        puts "No message found"
+      end
+    end
 
 Client-Server
 -------------
+
+Server: Receive requests and send back a reply
+
+    require 'rubygems'
+    require 'hornetq'
+    
+    # Shutdown Server after 5 minutes of inactivity, set to 0 to wait forever
+    timeout = 300000
+    
+    HornetQ::Client::Factory.start(:connector=> {:uri => 'hornetq://localhost'}) do |session|
+      server = session.create_server('jms.queue.ExampleQueue', timeout)
+    
+      puts "Waiting for Requests..."  
+      server.run do |request_message|
+        puts "Received:[#{request_message.body}]"
+        
+        # Create Reply Message
+        reply_message = session.create_message(HornetQ::Client::Message::TEXT_TYPE, false)
+        reply_message.body = "Echo [#{request_message.body}]"
+        
+        # The result of the block is the message to be sent back to the client
+        reply_message
+      end
+    
+      # Server will stop after timeout period after no messages received
+      server.close
+    end
+
+
+Client: Send a request and wait for a reply
+
+    require 'rubygems'
+    require 'hornetq'
+    
+    # Wait 5 seconds for a reply
+    timeout = 5000
+    
+    HornetQ::Client::Factory.start(:connector=> {:uri => 'hornetq://localhost'}) do |session|
+      requestor = session.create_requestor('jms.queue.ExampleQueue')
+    
+      # Create non-durable message
+      message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
+      message.body = "Request Current Time"
+      
+      # Send message to the queue
+      puts "Send request message and wait for Reply"
+      if reply = requestor.request(message, timeout)
+        puts "Received Response: #{reply.inspect}"
+        puts "  Message: #{reply.body.inspect}"
+      else
+        puts "Time out, No reply received after #{timeout/1000} seconds"
+      end
+      
+      requestor.close
+    end
 
 
 Threading
@@ -222,6 +304,7 @@ Authors
 -------
 
 Reid Morrison :: rubywmq@gmail.com :: @reidmorrison
+
 Brad Pardee :: bpardee@gmail.com
 
 [1]: http://help.github.com/forking/

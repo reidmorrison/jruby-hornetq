@@ -4,39 +4,28 @@
 #
 
 # Allow examples to be run in-place without requiring a gem install
-$LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
+$LOAD_PATH.unshift File.dirname(__FILE__) + '/../../lib'
 
 require 'rubygems'
-require 'yaml'
 require 'hornetq'
 
 timeout = (ARGV[0] || 60000).to_i
 
-config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')['development']
-
-# Create a HornetQ session
-HornetQ::Client::Factory.create_session(config) do |session|
+HornetQ::Client::Factory.start(:connector=> {:uri => 'hornetq://localhost'}) do |session|
   server = session.create_server('jms.queue.ExampleQueue', timeout)
-  session.start
-  
-  count = 0
-  start_time = Time.now
+
+  puts "Waiting for Requests..."  
   server.run do |request_message|
-    count = count + 1
-    #puts "=================================="
-    text = request_message.body
-    #p text
-    #p request_message
-    #print "."
-    puts "#{count}" if count%1000 == 0
-    puts "Durable" if request_message.durable
+    puts "Received:[#{request_message.body}]"
+    
+    # Create Reply Message
     reply_message = session.create_message(HornetQ::Client::Message::TEXT_TYPE, false)
-    reply_message << "Test Response"
+    reply_message.body = "Echo [#{request_message.body}]"
+    
+    # The result of the block is the message to be sent back
     reply_message
   end
-  
-  duration = Time.now - start_time - timeout/1000
-  puts "\nReceived #{count} requests in #{duration} seconds at #{count/duration} messages per second"
-  
+
+  # Server will stop after timeout period after no messages received. Set to 0 to wait foreve
   server.close
 end

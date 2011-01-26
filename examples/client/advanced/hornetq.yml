@@ -9,39 +9,29 @@ development:
   :session:
     :username: guest
     :password: guest
-
-test:
-  :connector:
-     :uri: hornetq://localhost:5445,localhost:5446
-     :failover_on_initial_connection: true
-     :failover_on_server_shutdown: true
-     # 5 Connection attempts takes about 16 seconds before it switches to the backup server
-     :reconnect_attempts: 5
-  :session:
-     :username: guest
-     :password: guest
-
+    
 # Example configuration showing all possible options and their default values if available
 full_example:
   :connector:
     # The uri is written as follows for the NettyConnectorFactory.
     #   protocol=netty is the default and therefore not required
-    :uri: hornetq://localhost:5445,backupserver:5445/?protocol=netty
+    :uri: hornetq://localhost:5445,backuphost:5445/?protocol=netty
     # Or, the uri is written as follows for the InVM
     :uri: hornetq://localhost/?protocol=invm
     # Or, the uri is written as follows for auto-discovery
-    :uri: hornetq://discoveryserver:5445/?protocol=discovery
+    :uri: hornetq://discoveryhost:5445/?protocol=discovery
     
     # For a static cluster list as an array of URI's
     :uri:
-      - netty://server1:5445,server1backup:5445
-      - netty://server2:5445,server2backup:5445
+      - hornetq://server1:5445,server1backup:5445
+      - hornetq://server2:5445,server2backup:5445
     # URI format:
-    #  [netty|invm|discovery]://host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
-    :options:
-        :failover_on_initial_connection: true
-        :failover_on_server_shutdown: true
-        :reconnect_attempts: -1
+    #  hornetq://host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
+    #    where options can be any of
+    #      protocol=[netty|invm|discovery]
+    :failover_on_initial_connection: true
+    :failover_on_server_shutdown: true
+    :reconnect_attempts: -1
   :session:
     :username: guest
     :password: guest
