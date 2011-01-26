@@ -11,8 +11,8 @@ require 'yaml'
 require 'hornetq'
 
 timeout = (ARGV[0] || 1000).to_i
-
-config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')['development']
+env = ARGV[1] || 'development'
+config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')[env]
 
 # Create a HornetQ session
 HornetQ::Client::Factory.create_session(config) do |session|
@@ -29,6 +29,8 @@ HornetQ::Client::Factory.create_session(config) do |session|
     p text
     p message
     puts "Durable" if message.durable
+    # Redirect stdout to /dev/null if you just want count updates
+    $stderr.puts "#{count}\n" if count%1000 == 0
   end
   duration = Time.now - start_time - timeout/1000
   puts "Received #{count} messages in #{duration} seconds at #{count/duration} messages per second"

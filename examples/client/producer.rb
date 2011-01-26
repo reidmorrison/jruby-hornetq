@@ -11,11 +11,12 @@ require 'yaml'
 require 'hornetq'
 
 count = (ARGV[0] || 1).to_i
-config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')['development']
+env = ARGV[1] || 'development'
+config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')[env]
 
 # Create a HornetQ session
 HornetQ::Client::Factory.create_session(config) do |session|
-  #session.create_queue('Example', 'Example', true)
+  #session.create_queue('ExampleQueue', 'ExampleQueue', true) rescue nil
   producer = session.create_producer('jms.queue.ExampleQueue')
   start_time = Time.now
 

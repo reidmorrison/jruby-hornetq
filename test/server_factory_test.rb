@@ -74,6 +74,8 @@ class ServerFactoryTest < Test::Unit::TestCase
 
   context 'live and backup server' do
     setup do
+      @count      = 20
+
       @server              = nil
       @tmp_data_dir        = "/tmp/data_dir/#{$$}"
       @uri                 = "hornetq://localhost:15445,localhost:15446"
@@ -104,20 +106,9 @@ class ServerFactoryTest < Test::Unit::TestCase
 
       # Give the live server time to startup
       sleep 10
-    end
 
-    teardown do
-      @server.stop
-      @server_thread.join
-      @backup_server.stop
-      @backup_server_thread.join
-      FileUtils.rm_rf([@tmp_data_dir, @backup_tmp_data_dir])
-    end
-
-    should 'failover to backup server w/o message loss' do
-      count      = 20
-      queue_name = 'test_queue'
-      config = {
+      @queue_name = 'test_queue'
+      @config = {
         :connector => {
           :uri                            => @uri,
           :failover_on_initial_connection => true,
@@ -126,38 +117,54 @@ class ServerFactoryTest < Test::Unit::TestCase
         :session   => { :username =>'guest', :password => 'guest'}
       }
 
-      killer_thread = MyThread.new('killer') do
+      @killer_thread = MyThread.new('killer') do
         sleep 5
         @server.stop
       end
 
-      producer_thread = MyThread.new('producer') do
+      @producer_thread = MyThread.new('producer') do
         # Create a HornetQ session
-        HornetQ::Client::Factory.create_session(config) do |session|
-          session.create_queue(queue_name, queue_name, true)
-          producer = session.create_producer(queue_name)
-          (1..count).each do |i|
+        HornetQ::Client::Factory.create_session(@config) do |session|
+          session.create_queue(@queue_name, @queue_name, true)
+          producer = session.create_producer(@queue_name)
+          (1..@count).each do |i|
             message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
             message.durable = true
             # Set the message body text
             message << "Message ##{i}"
-            puts "Producing message: #{message.body}"
             # Send message to the queue
             begin
+              puts "Producing message: #{message.body}"
               producer.send(message)
               sleep 1
             rescue Java::org.hornetq.api.core.HornetQException => e
-              puts "Received producer exception: #{e.message} with code=#{e.cause.getCode}"
-              retry if e.cause.getCode == Java::org.hornetq.api.core.HornetQException::UNBLOCKED
+              puts "Received producer exception: #{e.message} with code=#{e.cause.code}"
+              if e.cause.getCode == Java::org.hornetq.api.core.HornetQException::UNBLOCKED
+                puts "Retrying the send"
+                retry
+              end
+            rescue Exception => e
+              puts "Received producer exception: #{e.message}"
             end
           end
         end
       end
+    end
 
+    teardown do
+      @server.stop
+      @backup_server.stop
+      [ @server_thread, @backup_server_thread, @killer_thread, @producer_thread ].each do |thread|
+        thread.join
+      end
+      FileUtils.rm_rf([@tmp_data_dir, @backup_tmp_data_dir])
+    end
+
+    should 'failover to backup server w/o message loss' do
       # Let the producer create the queue
       sleep 2
-      HornetQ::Client::Factory.create_session(config) do |session|
-        consumer = session.create_consumer(queue_name)
+      HornetQ::Client::Factory.create_session(@config) do |session|
+        consumer = session.create_consumer(@queue_name)
         session.start
 
         i = 0
@@ -167,7 +174,7 @@ class ServerFactoryTest < Test::Unit::TestCase
           assert_equal "Message ##{i}", message.body
           puts "Consuming message #{message.body}"
         end
-        assert_equal count, i
+        assert_equal @count, i
       end
 
       killer_thread.join

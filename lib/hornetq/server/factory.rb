@@ -40,12 +40,15 @@ module HornetQ::Server
         config.journal_type = Java::org.hornetq.core.server.JournalType::NIO
       end
 
-      transport = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_ACCEPTOR_CLASS_NAME, {'host' => uri.host, 'port' => uri.port })
+      acceptor = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_ACCEPTOR_CLASS_NAME, {'host' => uri.host, 'port' => uri.port })
+      acceptor_conf_set = java.util.HashSet.new
+      acceptor_conf_set.add(acceptor)
+      config.acceptor_configurations = acceptor_conf_set
 
-      transport_conf_set = java.util.HashSet.new
-      transport_conf_set.add(transport)
-
-      config.acceptor_configurations = transport_conf_set
+      connector = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_CONNECTOR_CLASS_NAME, {'host' => uri.host, 'port' => uri.port })
+      connector_conf_map = java.util.HashMap.new
+      connector_conf_map.put('netty-connector', connector)
+      config.connector_configurations = connector_conf_map
 
       if parms[:backup]
         puts "backup"
@@ -55,11 +58,7 @@ module HornetQ::Server
         puts "live"
         #backup_params.put('reconnectAttempts', -1)
         backup_connector = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_CONNECTOR_CLASS_NAME, {'host' => uri.backup_host, 'port' => uri.backup_port })
-
-        connector_conf_map = java.util.HashMap.new
         connector_conf_map.put('backup-connector', backup_connector)
-
-        config.connector_configurations = connector_conf_map
         config.backup_connector_name = 'backup-connector'
       else
         puts 'standalone'
