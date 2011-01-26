@@ -38,15 +38,15 @@ module HornetQ::Client
     def initialize(factory, params={})
       # Save Session params since it will be used every time a new session is
       # created in the pool
-      session_parms = params.dup unless params.nil?
+      session_params = params.nil? ? {} : params.dup
       # TODO Use same logger as HornetQ?
       # TODO How to shrink unused connections?
       @pool = GenePool.new(
-        :name => params[:pool_name] || self.class.name,
-        :pool_size => params[:pool_size] || 10,
-        :warn_timeout => params[:pool_warn_timeout] || 5,
-        :logger       => params[:pool_logger]) do
-        s = factory.create_session(session_parms)
+        :name => session_params[:pool_name] || self.class.name,
+        :pool_size => session_params[:pool_size] || 10,
+        :warn_timeout => session_params[:pool_warn_timeout] || 5,
+        :logger       => session_params[:pool_logger]) do
+        s = factory.create_session(session_params)
         # Start the session since it will be used immediately upon creation
         s.start
         puts "Creating Session"
