@@ -29,9 +29,6 @@ module HornetQ::Server
           puts "Warning: Option:#{key} class=#{key.class} with value:#{val} is invalid and being ignored"
         end
       end
-      config.persistence_enabled = false
-      config.security_enabled = false
-      config.journal_min_files = 10
 
       if Java::org.hornetq.core.journal.impl.AIOSequentialFileFactory.isSupported
         config.journal_type = Java::org.hornetq.core.server.JournalType::ASYNCIO
