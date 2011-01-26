@@ -1,12 +1,13 @@
 #!/usr/bin/env jruby
 
 require 'rubygems'
+require 'yaml'
 require 'hornetq'
 
 unless ARGV[0]
   $stderr.puts <<EOF
 
-Usage: hornetq_server <uri>
+Usage: hornetq_server <uri-or-yml-file>
 
   Examples:
 
@@ -23,6 +24,18 @@ EOF
   exit 1
 end
 
-server = HornetQ::Server::Factory.create_server(ARGV[0])
+# Check if the argument is a yaml file or a uri
+if ARGV[0] =~ /\.ya?ml$/
+  config = YAML.load_file(ARGV[0])
+  # Allow sub items
+  (1...ARGV.size).each do |i|
+    config = config[ARGV[i]] || config[ARGV[i].to_sym]
+  end
+  puts "config=#{config.inspect}"
+  server = HornetQ::Server::Factory.create_server(config)
+else
+  uri = ARGV[0]
+  server = HornetQ::Server::Factory.create_server(uri)
+end
 server.enable_shutdown_on_signal
 server.start

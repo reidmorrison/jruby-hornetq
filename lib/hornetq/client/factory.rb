@@ -112,12 +112,12 @@ module HornetQ::Client
         HornetQ.require_jar 'hornetq-core'
         transport = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::INVM_CLASS_NAME)
         @factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport)
-      elsif uri[:protocol]
+      elsif parms[:protocol]
         # Auto-Discovery just has a host name and port
-        if uri[:protocol] == 'discovery'
+        if parms[:protocol] == 'discovery'
           @factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(uri.host, uri.port)
-        elsif uri[:protocol] != 'netty'
-          raise "Unknown HornetQ protocol:#{uri[:protocol]}"
+        elsif parms[:protocol] != 'netty'
+          raise "Unknown HornetQ protocol:#{parms[:protocol]}"
         end
       end
 
