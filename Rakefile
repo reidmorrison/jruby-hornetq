@@ -8,10 +8,10 @@ desc "Build gem"
 task :gem  do |t|
   gemspec = Gem::Specification.new do |s|
     s.name = 'jruby-hornetq'
-    s.version = '0.2.0.alpha'
-    s.author = 'Reid Morrison'
-    s.email = 'rubywmq@gmail.com'
-    s.homepage = 'http://www.reidmorrison.com/'
+    s.version = '0.2.1.alpha'
+    s.authors = ['Reid Morrison', 'Brad Pardee']
+    s.email = ['rubywmq@gmail.com', 'bpardee@gmail.com']
+    s.homepage = 'https://github.com/ClarityServices/jruby-hornetq'
     s.date = Date.today.to_s
     s.description = 'JRuby-HornetQ is a Java and Ruby library that exposes the HornetQ Java API in a ruby friendly way. For JRuby only.'
     s.summary = 'JRuby interface into HornetQ'

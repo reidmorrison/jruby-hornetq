@@ -98,25 +98,31 @@ module HornetQ::Client
     # * :thread_pool_max_size
     # * :use_global_pools
 
-    def initialize(parms={})
-      raise "Missing :uri under :connector in config" unless parms[:uri]
-      # TODO: Support :uri as an array for cluster configurations
-
+    def initialize(params={})
       HornetQ::Client.load_requirements
-
-      uri = HornetQ::URI.new(parms[:uri])
-      parms = uri.params.merge(parms)
+      uri = nil
+      # TODO: Support :uri as an array for cluster configurations
+      if params.kind_of?(String)
+        uri = HornetQ::URI.new(params)
+        params = uri.params
+      else
+        raise "Missing :uri param in HornetQ::Server.create_server" unless params[:uri]
+        uri = HornetQ::URI.new(params.delete(:uri))
+        # params override uri params
+        params = uri.params.merge(params)
+      end
+      
       @factory = nil
       # In-VM Transport has no fail-over or additional parameters
       if uri.host == 'invm'
-        transport = Java::org.hornetq.api.core.TransportConfiguration.new(INVM_CLASS_NAME)
+        transport = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::INVM_CONNECTOR_CLASS_NAME)
         @factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport)
-      elsif parms[:protocol]
+      elsif params[:protocol]
         # Auto-Discovery just has a host name and port
-        if parms[:protocol] == 'discovery'
+        if params[:protocol] == 'discovery'
           @factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(uri.host, uri.port)
-        elsif parms[:protocol] != 'netty'
-          raise "Unknown HornetQ protocol:#{parms[:protocol]}"
+        elsif params[:protocol] != 'netty'
+          raise "Unknown HornetQ protocol:#{params[:protocol]}"
         end
       end
 
@@ -135,7 +141,7 @@ module HornetQ::Client
       end
 
       # If any other options were supplied, apply them to the created Factory instance
-      parms.each_pair do |key, val|
+      params.each_pair do |key, val|
         next if key == :uri
         method = key.to_s+'='
         if @factory.respond_to? method
@@ -274,20 +280,20 @@ module HornetQ::Client
     #  * :ack_batch_size
     #    * the batch size of the acknowledgements
     #
-    def create_session(parms={}, &proc)
+    def create_session(params={}, &proc)
       raise "HornetQ::Client::Factory Already Closed" unless @factory
       if proc
         session = nil
         result = nil
         begin
           session = @factory.create_session(
-            parms[:username],
-            parms[:password],
-            parms[:xa] || false,
-            parms[:auto_commit_sends].nil? ? true : parms[:auto_commit_sends],
-            parms[:auto_commit_acks].nil? ? true : parms[:auto_commit_acks],
-            parms[:pre_acknowledge] || false,
-            parms[:ack_batch_size] || 1)
+            params[:username],
+            params[:password],
+            params[:xa] || false,
+            params[:auto_commit_sends].nil? ? true : params[:auto_commit_sends],
+            params[:auto_commit_acks].nil? ? true : params[:auto_commit_acks],
+            params[:pre_acknowledge] || false,
+            params[:ack_batch_size] || 1)
           result = proc.call(session)
         ensure
           session.close if session
@@ -295,21 +301,21 @@ module HornetQ::Client
         result
       else
         @factory.create_session(
-          parms[:username],
-          parms[:password],
-          parms[:xa] || false,
-          parms[:auto_commit_sends].nil? ? true : parms[:auto_commit_sends],
-          parms[:auto_commit_acks].nil? ? true : parms[:auto_commit_acks],
-          parms[:pre_acknowledge] || false,
-          parms[:ack_batch_size] || 1)
+          params[:username],
+          params[:password],
+          params[:xa] || false,
+          params[:auto_commit_sends].nil? ? true : params[:auto_commit_sends],
+          params[:auto_commit_acks].nil? ? true : params[:auto_commit_acks],
+          params[:pre_acknowledge] || false,
+          params[:ack_batch_size] || 1)
       end
     end
 
     # Create a Session pool
     # TODO Raise an exception when gene_pool is not available
-    def create_session_pool(parms={})
+    def create_session_pool(params={})
       require 'hornetq/client/session_pool'
-      SessionPool.new(self, parms)
+      SessionPool.new(self, params)
     end
     
     # Close Factory connections
@@ -324,14 +330,21 @@ module HornetQ::Client
     #  block. Upon completion the session and factory are both closed
     # See Factory::initialize and Factory::create_session for the list
     #  of parameters
-    def self.create_session(parms={},&proc)
+    def self.create_session(params={},&proc)
       raise "Missing mandatory code block" unless proc
       factory = nil
       session = nil
       begin
-        factory = self.new(parms[:connector] || {})
-        session = factory.create_session(parms[:session] || {}, &proc)
+        if params.kind_of?(String)
+          # TODO: Support passing username and password from URI to Session
+          factory = self.new(params)
+          session = factory.create_session({}, &proc)
+        else
+          factory = self.new(params[:connector] || {})
+          session = factory.create_session(params[:session] || {}, &proc)
+        end
       ensure
+        session.close if session
         factory.close if factory
       end
     end
@@ -342,8 +355,8 @@ module HornetQ::Client
     #  block. Upon completion the session and factory are both closed
     # See Factory::initialize and Factory::create_session for the list
     #  of parameters
-    def self.start(parms={},&proc)
-      create_session(parms) do |session|
+    def self.start(params={},&proc)
+      create_session(params) do |session|
         session.start
         proc.call(session)
       end
@@ -354,12 +367,12 @@ module HornetQ::Client
     # The factory is closed before returning
     # 
     # Returns the result of the code block
-    def self.create_factory(parms={}, &proc)
+    def self.create_factory(params={}, &proc)
       raise "Missing mandatory code block" unless proc
       factory = nil
       result = nil
       begin
-        factory=self.new(parms)
+        factory=self.new(params)
         result = proc.call(factory)
       ensure
         factory.close

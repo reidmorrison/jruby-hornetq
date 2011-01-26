@@ -17,7 +17,7 @@ full_example:
     #   protocol=netty is the default and therefore not required
     :uri: hornetq://localhost:5445,backuphost:5445/?protocol=netty
     # Or, the uri is written as follows for the InVM
-    :uri: hornetq://localhost/?protocol=invm
+    :uri: hornetq://invm
     # Or, the uri is written as follows for auto-discovery
     :uri: hornetq://discoveryhost:5445/?protocol=discovery
     
