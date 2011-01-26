@@ -41,7 +41,7 @@ module HornetQ::Server
       end
 
       if uri.host == 'invm'
-        acceptor = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::INVM_CLASS_NAME)
+        acceptor = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::INVM_ACCEPTOR_CLASS_NAME)
       else
         acceptor = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_ACCEPTOR_CLASS_NAME, {'host' => uri.host, 'port' => uri.port })
         connector = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_CONNECTOR_CLASS_NAME, {'host' => uri.host, 'port' => uri.port })
@@ -72,5 +72,18 @@ module HornetQ::Server
 
       return Java::org.hornetq.core.server.HornetQServers.newHornetQServer(config)
     end
+    
+    # Start a new server instance and stop it once the supplied block completes
+    def self.start(params={}, &block)
+      server = nil
+      begin
+        server = self.create_server(params)
+        server.start
+        block.call(server)
+      ensure
+        server.stop if server
+      end
+    end
+    
   end
 end

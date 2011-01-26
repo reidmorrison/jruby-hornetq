@@ -8,7 +8,8 @@ module HornetQ
   # Netty Class name
   NETTY_CONNECTOR_CLASS_NAME = 'org.hornetq.core.remoting.impl.netty.NettyConnectorFactory'
   NETTY_ACCEPTOR_CLASS_NAME  = 'org.hornetq.core.remoting.impl.netty.NettyAcceptorFactory'
-  INVM_CLASS_NAME            = 'org.hornetq.core.remoting.impl.invm.InVMAcceptorFactory'
+  INVM_CONNECTOR_CLASS_NAME  = 'org.hornetq.core.remoting.impl.invm.InVMConnectorFactory'
+  INVM_ACCEPTOR_CLASS_NAME   = 'org.hornetq.core.remoting.impl.invm.InVMAcceptorFactory'
 
   DEFAULT_NETTY_PORT     = java.lang.Integer.new(5445)
   DEFAULT_DATA_DIRECTORY = './data'

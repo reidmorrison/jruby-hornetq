@@ -10,26 +10,29 @@ require 'rubygems'
 require 'hornetq'
 
 # Create and start an InVM HornetQ server instance
-server = HornetQ::Server::Factory.create_server('hornetq://invm')
-server.enable_shutdown_on_signal
-server.start
+HornetQ::Server::Factory.start('hornetq://invm') do |server|
+  # Allow a CTRL-C to stop this process
+  server.enable_shutdown_on_signal
 
-HornetQ::Client::Factory.start(:connector=> {:uri => 'hornetq://invm'}) do |session|
-  producer = session.create_producer('jms.queue.ExampleQueue')
-  consumer = session.create_consumer('jms.queue.ExampleQueue')
+  HornetQ::Client::Factory.start('hornetq://invm') do |session|
+    session.create_queue("MyAddress","MyQueue", nil, false)
   
-  # Create a non-durable message to send
-  message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
-  message << "#{Time.now}: ### Hello, World ###"
+    producer = session.create_producer('MyAddress')
+    consumer = session.create_consumer('MyQueue')
   
-  producer.send(message)
+    # Create a non-durable message to send
+    message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
+    message << "#{Time.now}: ### Hello, World ###"
+  
+    producer.send(message)
   
   
-  # Receive a single message, return immediately if no message available
-  if message = consumer.receive_immediate
-    puts "Received:[#{message.body}]"
-    message.acknowledge
-  else
-    puts "No message found"
+    # Receive a single message, return immediately if no message available
+    if message = consumer.receive_immediate
+      puts "Received:[#{message.body}]"
+      message.acknowledge
+    else
+      puts "No message found"
+    end
   end
 end
