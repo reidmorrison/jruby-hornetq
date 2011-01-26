@@ -1,0 +1,29 @@
+backup_server:
+  :uri:                 hornetq://localhost:15446
+  :backup:              true
+  :data_directory:      ./data_backup
+  :persistence_enabled: true
+  :security_enabled:    false
+
+live_server:
+  :uri:                 hornetq://localhost:15445,localhost:15446
+  :data_directory:      ./data
+  :persistence_enabled: true
+  :security_enabled:    false
+
+client:
+  :connector:
+    :uri:                            hornetq://localhost:15445,localhost:15446
+    :failover_on_initial_connection: true
+    :failover_on_server_shutdown:    true
+    # 5 Connection attempts takes about 16 seconds before it switches to the backup server
+    :reconnect_attempts:             5
+
+  :session:
+    :username: guest
+    :password: guest
+
+constants:
+  :address: test_address
+  :queue:   test_queue
+  :durable: true

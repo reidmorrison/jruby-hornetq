@@ -1,0 +1,20 @@
+# Window 1:
+# Step 1
+rm -rf data data_backup
+hornetq_server hornetq.yml backup_server
+# Wait for HornetQ Server version ... started
+
+# Window 2:
+# Step 2
+hornetq_server hornetq.yml live_server &
+# Step 5
+# View window 3&4 looking for "1000" signifying that 1000 messages have been produced/consumed
+kill -9 %1 (or whatever the background job id for the server is) (or start in the foreground and just cntl-c)
+
+# Window 3:
+# Step 3
+./producer.rb 10000
+
+# Window 4:
+# Step 4
+./consumer.rb
