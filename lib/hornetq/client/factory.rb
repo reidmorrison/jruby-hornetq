@@ -155,12 +155,8 @@ module HornetQ::Client
 
     # Create a new HornetQ session
     # 
-    # If a block is passed in the block will be passed the session as a parameter
-    # and this method will return the result of the block. The session is
-    # always closed once the proc completes
-    # 
-    # If no block is passed, a new session is returned and it is the responsibility
-    # of the caller to close the session
+    # Note: Remember to close the session once it is no longer used.
+    #       Recommend using #session with a block over this method where possible
     #
     # Note:
     # * The returned session MUST be closed once complete
@@ -169,11 +165,6 @@ module HornetQ::Client
     #       ...
     #     session.close
     #     factory.close
-    # * It is recommended to rather call HornetQ::Client::Factory.create_session
-    #   so that all resouces are closed automatically
-    #     HornetQ::Client::Factory.create_session(:uri => 'hornetq://localhost/') do |session|
-    #       ...
-    #     end
     #
     # Returns:
     # * A new HornetQ ClientSession
@@ -183,31 +174,6 @@ module HornetQ::Client
     # * NativeException
     # * ...
     # 
-    # Example:
-    #   require 'hornetq'
-    #
-    #   factory = nil
-    #   begin
-    #     factory = HornetQ::Client::Factory.new(:uri => 'hornetq://localhost/')
-    #     factory.create_session do |session|
-    #
-    #       # Create a new queue
-    #       session.create_queue('Example', 'Example', true)
-    #
-    #       # Create a producer to send messages
-    #       producer = session.create_producer('Example')
-    #
-    #       # Create a Text Message
-    #       message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,true)
-    #       message << 'Hello World'
-    #
-    #       # Send the message
-    #       producer.send(message)
-    #     end
-    #   ensure
-    #     factory.close if factory
-    #   end
-    #
     # Example:
     #   require 'hornetq'
     #
@@ -280,37 +246,64 @@ module HornetQ::Client
     #  * :ack_batch_size
     #    * the batch size of the acknowledgements
     #
-    def create_session(params={}, &proc)
+    def create_session(params={})
       raise "HornetQ::Client::Factory Already Closed" unless @factory
-      if proc
-        session = nil
-        result = nil
-        begin
-          session = @factory.create_session(
-            params[:username],
-            params[:password],
-            params[:xa] || false,
-            params[:auto_commit_sends].nil? ? true : params[:auto_commit_sends],
-            params[:auto_commit_acks].nil? ? true : params[:auto_commit_acks],
-            params[:pre_acknowledge] || false,
-            params[:ack_batch_size] || 1)
-          result = proc.call(session)
-        ensure
-          session.close if session
-        end
-        result
-      else
-        @factory.create_session(
-          params[:username],
-          params[:password],
-          params[:xa] || false,
-          params[:auto_commit_sends].nil? ? true : params[:auto_commit_sends],
-          params[:auto_commit_acks].nil? ? true : params[:auto_commit_acks],
-          params[:pre_acknowledge] || false,
-          params[:ack_batch_size] || 1)
-      end
+      @factory.create_session(
+        params[:username],
+        params[:password],
+        params[:xa] || false,
+        params[:auto_commit_sends].nil? ? true : params[:auto_commit_sends],
+        params[:auto_commit_acks].nil? ? true : params[:auto_commit_acks],
+        params[:pre_acknowledge] || false,
+        params[:ack_batch_size] || 1)
     end
 
+    # Create a session, call the supplied block and once it completes
+    # close the session.
+    # See session_create for the Parameters
+    # 
+    # Returns the result of the block
+    # 
+    # Example
+    #     HornetQ::Client::Factory.create_session(:uri => 'hornetq://localhost/') do |session|
+    #       session.create_queue("Address", "Queue")
+    #     end    
+    #
+    # Example:
+    #   require 'hornetq'
+    #
+    #   factory = nil
+    #   begin
+    #     factory = HornetQ::Client::Factory.new(:uri => 'hornetq://localhost/')
+    #     factory.create_session do |session|
+    #
+    #       # Create a new queue
+    #       session.create_queue('Example', 'Example', true)
+    #
+    #       # Create a producer to send messages
+    #       producer = session.create_producer('Example')
+    #
+    #       # Create a Text Message
+    #       message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,true)
+    #       message << 'Hello World'
+    #
+    #       # Send the message
+    #       producer.send(message)
+    #     end
+    #   ensure
+    #     factory.close if factory
+    #   end
+    def session(params={}, &proc)
+      raise "HornetQ::Client::session mandatory block missing" unless proc
+      session = nil
+      begin
+        session = create_session(params)
+        proc.call(session)
+      ensure
+        session.close if session
+      end
+    end
+    
     # Create a Session pool
     # TODO Raise an exception when gene_pool is not available
     def create_session_pool(params={})
@@ -330,7 +323,7 @@ module HornetQ::Client
     #  block. Upon completion the session and factory are both closed
     # See Factory::initialize and Factory::create_session for the list
     #  of parameters
-    def self.create_session(params={},&proc)
+    def self.session(params={},&proc)
       raise "Missing mandatory code block" unless proc
       factory = nil
       session = nil
@@ -338,10 +331,10 @@ module HornetQ::Client
         if params.kind_of?(String)
           # TODO: Support passing username and password from URI to Session
           factory = self.new(params)
-          session = factory.create_session({}, &proc)
+          session = factory.session({}, &proc)
         else
           factory = self.new(params[:connector] || {})
-          session = factory.create_session(params[:session] || {}, &proc)
+          session = factory.session(params[:session] || {}, &proc)
         end
       ensure
         session.close if session
@@ -356,7 +349,7 @@ module HornetQ::Client
     # See Factory::initialize and Factory::create_session for the list
     #  of parameters
     def self.start(params={},&proc)
-      create_session(params) do |session|
+      session(params) do |session|
         session.start
         proc.call(session)
       end

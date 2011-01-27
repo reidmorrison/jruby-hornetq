@@ -14,7 +14,7 @@ config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')
 constants = config['constants']
 
 # Create a HornetQ session
-HornetQ::Client::Factory.create_session(config['client']) do |session|
+HornetQ::Client::Factory.session(config['client']) do |session|
   consumer = session.create_consumer(constants[:queue])
   session.start
 

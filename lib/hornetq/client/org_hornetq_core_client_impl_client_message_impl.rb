@@ -48,7 +48,22 @@ class Java::OrgHornetqCoreClientImpl::ClientMessageImpl
     case type
     when Java::org.hornetq.api.core.Message::BYTES_TYPE  #4
       buf = body_buffer
-      String.new(buf.read_bytes(buf.readable_bytes))
+      buf.reset_reader_index
+      available = body_size
+      result = ""      
+      bytes_size = 1024
+      bytes = Java::byte[bytes_size].new
+      
+      while (n = available < bytes_size ? available : bytes_size) > 0
+        buf.read_bytes(bytes, 0, n)
+        if n == bytes_size
+          result << String.from_java_bytes(bytes)
+        else
+          result << String.from_java_bytes(bytes)[0..n-1]
+        end
+        available -= n
+      end
+      result
     when Java::org.hornetq.api.core.Message::DEFAULT_TYPE 	#0
     when Java::org.hornetq.api.core.Message::MAP_TYPE 	#5
       Java::org.hornetq.utils::TypedProperties.new.decode(body_buffer)
@@ -141,7 +156,7 @@ class Java::OrgHornetqCoreClientImpl::ClientMessageImpl
   
   # Serialize JRuby object and base64 encode
   def decode
-    if self.get_string_property( 'torquebox_encoding' ) == 'base64'
+    if self.get_string_property( 'encoding' ) == 'base64'
       serialized = Base64.decode64( self.text )
       Marshal.restore( serialized )
     else

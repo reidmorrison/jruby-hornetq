@@ -13,7 +13,7 @@ config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')
 constants = config['constants']
 
 # Create a HornetQ session
-HornetQ::Client::Factory.create_session(config['client']) do |session|
+HornetQ::Client::Factory.session(config['client']) do |session|
   session.delete_queue(constants[:queue]) rescue nil
   session.create_queue(constants[:address], constants[:queue], constants[:durable])
   producer = session.create_producer(constants[:address])

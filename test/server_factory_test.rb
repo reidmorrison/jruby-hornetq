@@ -45,7 +45,7 @@ class ServerFactoryTest < Test::Unit::TestCase
       }
 
       # Create a HornetQ session
-      HornetQ::Client::Factory.create_session(config) do |session|
+      HornetQ::Client::Factory.session(config) do |session|
         session.create_queue(queue_name, queue_name, true)
         producer = session.create_producer(queue_name)
         (1..count).each do |i|
@@ -58,7 +58,7 @@ class ServerFactoryTest < Test::Unit::TestCase
         end
       end
 
-      HornetQ::Client::Factory.create_session(config) do |session|
+      HornetQ::Client::Factory.session(config) do |session|
         consumer = session.create_consumer(queue_name)
         session.start
 
@@ -124,7 +124,7 @@ class ServerFactoryTest < Test::Unit::TestCase
 
       @producer_thread = MyThread.new('producer') do
         # Create a HornetQ session
-        HornetQ::Client::Factory.create_session(@config) do |session|
+        HornetQ::Client::Factory.session(@config) do |session|
           session.create_queue(@queue_name, @queue_name, true)
           producer = session.create_producer(@queue_name)
           (1..@count).each do |i|
@@ -162,7 +162,7 @@ class ServerFactoryTest < Test::Unit::TestCase
     should 'failover to backup server w/o message loss' do
       # Let the producer create the queue
       sleep 2
-      HornetQ::Client::Factory.create_session(@config) do |session|
+      HornetQ::Client::Factory.session(@config) do |session|
         consumer = session.create_consumer(@queue_name)
         session.start
 
