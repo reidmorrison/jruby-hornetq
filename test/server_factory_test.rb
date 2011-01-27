@@ -128,8 +128,7 @@ class ServerFactoryTest < Test::Unit::TestCase
           session.create_queue(@queue_name, @queue_name, true)
           producer = session.create_producer(@queue_name)
           (1..@count).each do |i|
-            message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
-            message.durable = true
+            message = session.create_message(HornetQ::Client::Message::TEXT_TYPE, true)
             # Set the message body text
             message << "Message ##{i}"
             # Send message to the queue
