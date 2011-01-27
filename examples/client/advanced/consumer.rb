@@ -15,7 +15,7 @@ timeout = (ARGV[0] || 1000).to_i
 config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')['development']
 
 # Create a HornetQ session
-HornetQ::Client::Factory.create_session(config) do |session|
+HornetQ::Client::Factory.session(config) do |session|
   consumer = session.create_consumer('jms.queue.ExampleQueue')
   session.start
   

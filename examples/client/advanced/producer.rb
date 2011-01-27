@@ -14,7 +14,7 @@ count = (ARGV[0] || 1).to_i
 config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')['development']
 
 # Create a HornetQ session
-HornetQ::Client::Factory.create_session(config) do |session|
+HornetQ::Client::Factory.session(config) do |session|
   producer = session.create_producer('jms.queue.ExampleQueue')
   start_time = Time.now
 
