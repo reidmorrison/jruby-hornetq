@@ -20,25 +20,10 @@ module HornetQ::Server
       config.journal_directory = "#{data_directory}/journal"
       config.large_messages_directory = "#{data_directory}/large-messages"
 
-      parms.each_pair do |key, val|
-        method = key.to_s+'='
-        if config.respond_to? method
-          config.send method, val
-          #puts "Debug: #{key} = #{config.send key}" if config.respond_to? key.to_sym
-        else
-          puts "Warning: Option:#{key} class=#{key.class} with value:#{val} is invalid and being ignored"
-        end
-      end
-
-      if Java::org.hornetq.core.journal.impl.AIOSequentialFileFactory.isSupported
-        config.journal_type = Java::org.hornetq.core.server.JournalType::ASYNCIO
-      else
-        puts("AIO wasn't located on this platform, it will fall back to using pure Java NIO. If your platform is Linux, install LibAIO to enable the AIO journal");
-        config.journal_type = Java::org.hornetq.core.server.JournalType::NIO
-      end
-
       if uri.host == 'invm'
         acceptor = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::INVM_ACCEPTOR_CLASS_NAME)
+        config.persistence_enabled = false
+        config.security_enabled    = false
       else
         acceptor = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_ACCEPTOR_CLASS_NAME, {'host' => uri.host, 'port' => uri.port })
         connector = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_CONNECTOR_CLASS_NAME, {'host' => uri.host, 'port' => uri.port })
@@ -50,6 +35,12 @@ module HornetQ::Server
       acceptor_conf_set.add(acceptor)
       config.acceptor_configurations = acceptor_conf_set
 
+      if Java::org.hornetq.core.journal.impl.AIOSequentialFileFactory.isSupported
+        config.journal_type = Java::org.hornetq.core.server.JournalType::ASYNCIO
+      else
+        puts("AIO wasn't located on this platform, it will fall back to using pure Java NIO. If your platform is Linux, install LibAIO to enable the AIO journal");
+        config.journal_type = Java::org.hornetq.core.server.JournalType::NIO
+      end
 
       if parms[:backup]
         puts "backup"
@@ -65,6 +56,16 @@ module HornetQ::Server
         puts 'invm'
       else
         puts 'standalone'
+      end
+
+      parms.each_pair do |key, val|
+        method = key.to_s+'='
+        if config.respond_to? method
+          config.send method, val
+          #puts "Debug: #{key} = #{config.send key}" if config.respond_to? key.to_sym
+        else
+          puts "Warning: Option:#{key} class=#{key.class} with value:#{val} is invalid and being ignored"
+        end
       end
 
       return Java::org.hornetq.core.server.HornetQServers.newHornetQServer(config)
