@@ -95,7 +95,7 @@ module HornetQ::Client
       # Example
       #   session_pool.producer('MyAddress') do |session, producer|
       #     message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
-      #     message << "#{Time.now}: ### Hello, World ###"
+      #     message.body = "#{Time.now}: ### Hello, World ###"
       #     producer.send(message)
       #   end
       def producer(address, &block)

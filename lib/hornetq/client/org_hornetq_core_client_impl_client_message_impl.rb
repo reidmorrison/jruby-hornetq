@@ -64,11 +64,19 @@ class Java::OrgHornetqCoreClientImpl::ClientMessageImpl
         available -= n
       end
       result
+      
     when Java::org.hornetq.api.core.Message::DEFAULT_TYPE 	#0
+      #TODO Default Type?
+      
     when Java::org.hornetq.api.core.Message::MAP_TYPE 	#5
       Java::org.hornetq.utils::TypedProperties.new.decode(body_buffer)
+      
     when Java::org.hornetq.api.core.Message::OBJECT_TYPE 	#2
+      # TODO Java Object Type
+      
     when Java::org.hornetq.api.core.Message::STREAM_TYPE 	#6
+      #TODO Stream Type
+      
     when Java::org.hornetq.api.core.Message::TEXT_TYPE 	#3
       body_buffer.read_nullable_simple_string.to_string
     else
@@ -78,89 +86,52 @@ class Java::OrgHornetqCoreClientImpl::ClientMessageImpl
   
   # Write data into the message body
   # 
+  # Note: The message type Must be set before calling this method
+  # 
   # Data is automatically converted based on the message type
   # 
-  # DEPRECATED
-  def <<(data)
+  def body=(data)
+    body_buffer.reset_writer_index
     case type
+      
     when Java::org.hornetq.api.core.Message::BYTES_TYPE  #4
-      body_buffer.write_bytes(data)
-    when Java::org.hornetq.api.core.Message::DEFAULT_TYPE 	#0
-      raise "Cannot use Message#<< when the Message#type has not been set"
+      body_buffer.write_bytes(data.respond_to?(:to_java_bytes) ? data.to_java_bytes : data)
+      
     when Java::org.hornetq.api.core.Message::MAP_TYPE 	#5
-      if data.class == Java::org.hornetq.utils::TypedProperties
-        body_buffer.reset_writer_index
+      if data.kind_of? Java::org.hornetq.utils::TypedProperties
         data.encode(body_buffer)
       elsif data.responds_to? :each_pair
+        # Ruby Hash, or anything that responds to :each_pair
+        # TODO What about Hash inside of Hash?
         properties = Java::org.hornetq.utils::TypedProperties.new
-        properties.from_hash(data)
-        body_buffer.reset_writer_index
+        data.each_pair do |key, val|
+          properties[key.to_s] = val
+        end
         properties.encode(body_buffer)
+      else
+        raise "Unrecognized data type #{data.class.name} being set when the message type is MAP"
       end
+      
     when Java::org.hornetq.api.core.Message::OBJECT_TYPE 	#2
+      # Serialize Java Object
+      # TODO Should we do the serialize here?
+      body_buffer.write_bytes(data)
+      
     when Java::org.hornetq.api.core.Message::STREAM_TYPE 	#6
+      # TODO Stream Type
+      
     when Java::org.hornetq.api.core.Message::TEXT_TYPE 	#3
-      if data.class == Java::org.hornetq.api.core::SimpleString
+      if data.kind_of? Java::org.hornetq.api.core::SimpleString
         body_buffer.writeNullableSimpleString(data)
       else
         body_buffer.writeNullableSimpleString(Java::org.hornetq.api.core::SimpleString.new(data.to_s))
       end
+      
+    when Java::org.hornetq.api.core.Message::DEFAULT_TYPE 	#0
+      raise "The Message#type must be set before attempting to set the message body"
+      
     else
-      raise "Unknown Message Type, use Message#body_buffer instead"
-    end
-  end
-  
-  # Set the body of the message
-  # The type of the message is automatically set based on the type passed in.
-  # The following types are automatically supported in order of priority
-  #   String                                   => :text
-  #   Java::org.hornetq.api.core::SimpleString => :text
-  #   Java::org.hornetq.utils::TypedProperties => :map
-  #   Hash (actually any object responding to  => :map
-  def body=(data)
-    body_buffer.reset_writer_index
-    if data.is_a? String
-      # Ruby String
-      self.type = Java::org.hornetq.api.core.Message::TEXT_TYPE
-      body_buffer.writeNullableSimpleString(Java::org.hornetq.api.core::SimpleString.new(data))
-    elsif data.is_a? Java::org.hornetq.api.core::SimpleString
-      # SimpleString instance
-      self.type = Java::org.hornetq.api.core.Message::TEXT_TYPE
-      body_buffer.writeNullableSimpleString(data)
-    elsif data.is_a? Java::org.hornetq.utils::TypedProperties
-      # TypedProperties
-      self.type = Java::org.hornetq.api.core.Message::MAP_TYPE
-      data.encode(body_buffer)
-    elsif data.responds_to? :each_pair
-      # Ruby Hash, or anything that responds to :each_pair
-      # TODO What about Hash inside of Hash?
-      self.type = Java::org.hornetq.api.core.Message::MAP_TYPE
-      properties = Java::org.hornetq.utils::TypedProperties.new
-      data.each_pair do |key, val|
-        properties[key.to_s] = val
-      end
-      properties.encode(body_buffer)
-    elsif data.responds_to? :to_s
-      # Can be converted to a Ruby String
-      self.type = Java::org.hornetq.api.core.Message::TEXT_TYPE
-      body_buffer.writeNullableSimpleString(Java::org.hornetq.api.core::SimpleString.new(data.to_s))
-    else
-      # Otherwise Serialize Ruby object
-      self.type = Java::org.hornetq.api.core.Message::BYTES_TYPE
-      self['encoding', 'jruby']
-      # If BYTES type is not working we could use Base64.encode64
-      self << Marshal.dump(data)
-      self.text = encoded
-    end
-  end
-  
-  # Serialize JRuby object and base64 encode
-  def decode
-    if self.get_string_property( 'encoding' ) == 'base64'
-      serialized = Base64.decode64( self.text )
-      Marshal.restore( serialized )
-    else
-      self.text
+      raise "Unknown Message Type, use Message#body_buffer directly"
     end
   end
   

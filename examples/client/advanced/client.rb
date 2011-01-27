@@ -26,7 +26,7 @@ HornetQ::Client::Factory.session(config) do |session|
   (1..count).each do |i|
     message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
     # Set the message body text
-    message << "Request Current Time"
+    message.body = "Request Current Time"
     # Set the user managed message id
     message.user_id = Java::org.hornetq.utils::UUIDGenerator.getInstance.generateUUID
     # Send request message and wait for reply

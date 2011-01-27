@@ -15,7 +15,7 @@ HornetQ::Client::Factory.session('hornetq://localhost') do |session|
   
   # Create a non-durable message to send
   message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
-  message << "#{Time.now}: ### Hello, World ###"
+  message.body = "#{Time.now}: ### Hello, World ###"
   
   producer.send(message)
 end

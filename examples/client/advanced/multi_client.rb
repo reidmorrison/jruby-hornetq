@@ -26,7 +26,7 @@ def worker_thread(id, session_pool)
     # Obtain a session from the pool and return when complete
     session_pool.requestor('jms.queue.ExampleQueue') do |session, requestor|
       message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
-      message << "Request Current Time"
+      message.body = "Request Current Time"
     
       # Send message to the queue
       puts "Thread[#{id}]: Sending Request"
