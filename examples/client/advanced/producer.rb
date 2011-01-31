@@ -22,7 +22,7 @@ HornetQ::Client::Factory.session(config) do |session|
   (1..count).each do |i|
     message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
     # Set the message body text
-    message << "#{Time.now}: ### Hello, World ###"
+    message.body = "#{Time.now}: ### Hello, World ###"
     # Send message to the queue
     producer.send(message)
     #puts message

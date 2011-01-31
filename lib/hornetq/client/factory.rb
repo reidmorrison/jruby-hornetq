@@ -285,7 +285,7 @@ module HornetQ::Client
     #
     #       # Create a Text Message
     #       message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,true)
-    #       message << 'Hello World'
+    #       message.body = 'Hello World'
     #
     #       # Send the message
     #       producer.send(message)

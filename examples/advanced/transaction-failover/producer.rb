@@ -22,7 +22,7 @@ HornetQ::Client::Factory.session(config['client']) do |session|
   (1..count).each do |i|
     message = session.create_message(HornetQ::Client::Message::TEXT_TYPE, true)
     # Set the message body text
-    message << "Message ##{i}"
+    message.body = "Message ##{i}"
     message.put_string_property(Java::org.hornetq.api.core.SimpleString.new(HornetQ::Client::Message::HDR_DUPLICATE_DETECTION_ID.to_s), Java::org.hornetq.api.core.SimpleString.new("uniqueid#{i}"))
     # Send message to the queue
     begin

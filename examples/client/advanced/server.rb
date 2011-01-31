@@ -28,7 +28,7 @@ HornetQ::Client::Factory.session(config) do |session|
     puts "#{count}" if count%1000 == 0
     puts "Durable" if request_message.durable
     reply_message = session.create_message(HornetQ::Client::Message::TEXT_TYPE, false)
-    reply_message << "Test Response"
+    reply_message.body = "Test Response"
     reply_message
   end
   
