@@ -14,7 +14,6 @@ constants = config['constants']
 
 # Create a HornetQ session
 HornetQ::Client::Factory.session(config['client']) do |session|
-  session.delete_queue(constants[:queue]) rescue nil
   session.create_queue(constants[:address], constants[:queue], constants[:durable])
   producer = session.create_producer(constants[:address])
   start_time = Time.now
