@@ -1,0 +1,32 @@
+standalone_server:
+  :uri:                 hornetq://localhost:15445
+  :data_directory:      ./data
+  :persistence_enabled: true
+  :security_enabled:    false
+
+client:
+  :connector:
+    :uri:   hornetq://localhost:15445
+  :session:
+    :username:          guest
+    :password:          guest
+  :session_pool:
+    :pool_size:         3
+    :pool_warn_timeout: 0.25
+    :username:          guest
+    :password:          guest
+
+queues:
+  :queue1:
+    :address:   my_address
+    :queue:     my_queue1
+    :serialize: ruby_marshal
+    :unique:    true
+    :durable:   true
+
+  :queue2:
+    :address:   my_address
+    :queue:     my_queue2
+    :serialize: json
+    :unique:    true
+    :durable:   true

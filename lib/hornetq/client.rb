@@ -17,3 +17,6 @@ end
 require 'hornetq/client/factory'
 require 'hornetq/client/requestor'
 require 'hornetq/client/server'
+require 'hornetq/client/producer_manager'
+require 'hornetq/client/consumer_manager'
+require 'hornetq/client/session_manager'

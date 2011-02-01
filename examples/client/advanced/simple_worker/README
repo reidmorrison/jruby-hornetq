@@ -1,0 +1,14 @@
+# Window 1:
+# Step 1
+hornetq_server hornetq.yml standalone_server
+# Wait for HornetQ Server version ... started
+
+# Window 2:
+# Step 2
+./producer.rb
+
+# Window 3:
+# Step 3
+./worker.rb
+
+#Should be able to cntl-c and restart producer and worker without issues.
