@@ -32,15 +32,8 @@ class Java::OrgHornetqCoreClientImpl::ClientMessageImpl
     put_string_property(Java::OrgHornetqCoreClientImpl::ClientMessageImpl::REPLYTO_HEADER_NAME, val)
   end
 
-  # Return the size of the encoded message
-  # attr_reader :encode_size
-
   # Return the body for this message
   # TODO: Do remaining message Types
-  # 
-  # WARNING: This method can only be called ONCE!
-  # WARNING: Do not call after setting the body otherwise the send will have
-  #          an empty body
   def body
     # Allow this buffer to be read multiple times
     body_buffer.reset_reader_index
