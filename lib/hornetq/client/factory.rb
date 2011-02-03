@@ -372,10 +372,12 @@ module HornetQ::Client
     end
     
     # Receive messages in a separate thread when they arrive
-    # Allows messages to be recieved in a separate thread. I.e. Asynchronously
+    # Allows messages to be received in a separate thread. I.e. Asynchronously
     # This method will return to the caller before messages are processed.
     # It is then the callers responsibility to keep the program active so that messages
     # can then be processed.
+    # 
+    # Note: 
     #
     # Session Parameters:
     #   :options => any of the javax.jms.Session constants
@@ -390,7 +392,7 @@ module HornetQ::Client
     #                    Default: 1
     #
     # Consumer Parameters:
-    #   :q_name     => Name of the Queue to read messages from
+    #   :queue_name => Name of the Queue to read messages from
     #
     #   :selector   => Filter which messages should be returned from the queue
     #                  Default: All messages
@@ -422,24 +424,11 @@ module HornetQ::Client
     #       the message will be removed from the queue
     # * If the block throws an exception, the 
     def on_message(parms, &proc)
-      raise "HornetQ::Client::Factory:: must be connected prior to calling JMS::Connection::on_message" unless @sessions && @consumers
-
       consumer_count = parms[:session_count] || 1
       consumer_count.times do
         session = self.create_session(parms)
-        consumer = session.consumer(parms)
-        if session.transacted?
-          consumer.on_message(parms) do |message|
-            begin
-              proc.call(message) ? session.commit : session.rollback
-            rescue => exc
-              session.rollback
-              throw exc
-            end
-          end
-        else
-          consumer.on_message(parms, &proc)
-        end
+        consumer = session.create_consumer_from_params(parms)
+        consumer.on_message(parms, &proc)
         @consumers << consumer
         @sessions << session
       end

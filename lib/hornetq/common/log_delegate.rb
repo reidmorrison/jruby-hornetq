@@ -6,7 +6,8 @@ module HornetQ
 
   # HornetQ requires a factory from which it can create a logger per thread and/or class 
   class LogDelegateFactory
-
+    include 
+    
     def createDelegate(klass)
       LogDelegate.new(klass.name)
     end
@@ -23,14 +24,14 @@ module HornetQ
     
     # DRY, generate a method for each required log level
     ['debug', 'error', 'fatal', 'info', 'trace', 'warn'].each do |level|
-      self.eval <<-LOG_LEVEL_METHOD
+      eval <<-LOG_LEVEL_METHOD
       def #{level}(message)
-        @logger.#{level}("[#{@class_name}] #{message}") if is#{level.capitalize}Enabled
+        @logger.#{level}("[\#{@class_name}] \#{message}") if is#{level.capitalize}Enabled
       end
 
       def #{level}(message, t)
         if is#{level.capitalize}Enabled
-          @logger.#{level}("[#{@class_name}] #{message}. #{t.to_string}")
+          @logger.#{level}("[\#{@class_name}] \#{message}. \#{t.to_string}")
           @logger.#{level}(t.stack_trace.to_string)
         end
       end

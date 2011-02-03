@@ -8,9 +8,10 @@ module HornetQ
   # Replace the logger for both HornetQ and jruby-hornetq
   # TODO Directly support Log4J as logger since HornetQ has direct support for Log4J
   def self.logger=(logger)
+    HornetQ::Client.load_requirements unless defined? Java::org.hornetq.core.logging::Logger
     @logger = logger
     # Also replace the HornetQ logger
-    Java::org.hornetq.core.logging.Logger.setDelegateFactory(HornetQ::LogDelegateFactory.new(logger))
+    Java::org.hornetq.core.logging::Logger.setDelegateFactory(HornetQ::LogDelegateFactory.new)
     # TODO org.hornetq.core.logging.Logger.setDelegateFactory(org.hornetq.integration.logging.Log4jLogDelegateFactory.new)
   end
 
@@ -22,7 +23,8 @@ module HornetQ
 
   # By default we use the HornetQ Logger
   def self.default_logger
-    Java::org.hornetq.core.logging::Logger.getLogger(self)
+    HornetQ::Client.load_requirements unless defined? Java::org.hornetq.core.logging::Logger
+    Java::org.hornetq.core.logging::Logger.getLogger(org.hornetq.api.core.client::HornetQClient)
     #    require 'logger'
     #    l = Logger.new(STDOUT)
     #    l.level = Logger::INFO

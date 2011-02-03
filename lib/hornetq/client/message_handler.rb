@@ -14,7 +14,6 @@ module HornetQ::Client
     #              The start time and message count is never reset for this instance
     def initialize(parms={}, &proc)
       @proc = proc
-      @log = org.apache.commons.logging.LogFactory.getLog('HornetQ::Client::MessageHandler')
 
       if parms[:statistics]
         @message_count = 0
@@ -34,17 +33,17 @@ module HornetQ::Client
         end
         @proc.call message
       rescue SyntaxError, NameError => boom
-        @log.error "Unhandled Exception processing Message. Doesn't compile: " + boom
-        @log.error "Ignoring poison message:\n#{message.inspect}"
-        @log.error boom.backtrace.join("\n")
+        HornetQ::logger.error "Unhandled Exception processing Message. Doesn't compile: " + boom
+        HornetQ::logger.error "Ignoring poison message:\n#{message.inspect}"
+        HornetQ::logger.error boom.backtrace.join("\n")
       rescue StandardError => bang
-        @log.error "Unhandled Exception processing Message. Doesn't compile: " + bang
-        @log.error "Ignoring poison message:\n#{message.inspect}"
-        @log.error boom.backtrace.join("\n")
+        HornetQ::logger.error "Unhandled Exception processing Message. Doesn't compile: " + bang
+        HornetQ::logger.error "Ignoring poison message:\n#{message.inspect}"
+        HornetQ::logger.error boom.backtrace.join("\n")
       rescue => exc
-        @log.error "Unhandled Exception processing Message. Exception occurred:\n#{exc}"
-        @log.error "Ignoring poison message:\n#{message.inspect}"
-        @log.error exc.backtrace.join("\n")
+        HornetQ::logger.error "Unhandled Exception processing Message. Exception occurred:\n#{exc}"
+        HornetQ::logger.error "Ignoring poison message:\n#{message.inspect}"
+        HornetQ::logger.error exc.backtrace.join("\n")
       end
     end
 

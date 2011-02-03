@@ -40,30 +40,35 @@ module Java::org.hornetq.api.core.client::ClientSession
   #     msg.acknowledge
   #   end
   def consumer(params={}, &block)
-    queue_name = params.kind_of?(Hash) ? params[:queue_name] : params
-    raise("Missing mandatory parameter :queue_name") unless queue_name
-    
     consumer = nil
     begin
-      consumer = if params[:max_rate] || params[:window_size]
-        self.create_consumer(
-          queue_name, 
-          params[:filter], 
-          params[:window_size],
-          params[:max_rate],
-          params[:browse_only].nil? ? false : params[:browse_only])
-      else
-        self.create_consumer(
-          queue_name, 
-          params[:filter], 
-          params[:browse_only].nil? ? false : params[:browse_only])
-      end
+      consumer = create_consumer_from_params(params)
       block.call(consumer)
     ensure
       consumer.close if consumer
     end
   end
   
+  # Deprecated
+  def create_consumer_from_params(params={})
+    queue_name = params.kind_of?(Hash) ? params[:queue_name] : params
+    raise("Missing mandatory parameter :queue_name") unless queue_name
+    
+    if params[:max_rate] || params[:window_size]
+      self.create_consumer(
+        queue_name, 
+        params[:filter], 
+        params[:window_size],
+        params[:max_rate],
+        params[:browse_only].nil? ? false : params[:browse_only])
+    else
+      self.create_consumer(
+        queue_name, 
+        params[:filter], 
+        params[:browse_only].nil? ? false : params[:browse_only])
+    end
+  end
+
   # Creates a ClientProducer to send messages, calls the supplied block, 
   # then close the consumer
   #  
