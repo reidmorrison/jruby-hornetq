@@ -1,8 +1,62 @@
-require 'uri'
-
 module HornetQ::Client
 
   class Factory
+    # Create a new Factory and Session
+    # 
+    #  Creates a new factory and session, then passes the session to the supplied
+    #  block. Upon completion the session and factory are both closed
+    # See Factory::initialize and Factory::create_session for the list
+    #  of parameters
+    def self.session(params={},&proc)
+      raise "Missing mandatory code block" unless proc
+      factory = nil
+      session = nil
+      begin
+        if params.kind_of?(String)
+          # TODO: Support passing username and password from URI to Session
+          factory = self.new(params)
+          session = factory.session({}, &proc)
+        else
+          factory = self.new(params[:connector] || {})
+          session = factory.session(params[:session] || {}, &proc)
+        end
+      ensure
+        session.close if session
+        factory.close if factory
+      end
+    end
+    
+    # Create a new Factory along with a Session, and then start the session
+    # 
+    #  Creates a new factory and session, then passes the session to the supplied
+    #  block. Upon completion the session and factory are both closed
+    # See Factory::initialize and Factory::create_session for the list
+    #  of parameters
+    def self.start(params={},&proc)
+      session(params) do |session|
+        session.start
+        proc.call(session)
+      end
+    end
+    
+    # Call the supplied code block after creating a factory instance
+    # See initialize for the parameter list
+    # The factory is closed before returning
+    # 
+    # Returns the result of the code block
+    def self.create_factory(params={}, &proc)
+      raise "Missing mandatory code block" unless proc
+      factory = nil
+      result = nil
+      begin
+        factory=self.new(params)
+        result = proc.call(factory)
+      ensure
+        factory.close
+      end
+      result
+    end
+
     # Create a new Factory from which sessions can be created
     #
     # Parameters:
@@ -316,62 +370,73 @@ module HornetQ::Client
       @factory.close if @factory
       @factory = nil
     end
+    
+    # Receive messages in a separate thread when they arrive
+    # Allows messages to be received in a separate thread. I.e. Asynchronously
+    # This method will return to the caller before messages are processed.
+    # It is then the callers responsibility to keep the program active so that messages
+    # can then be processed.
+    # 
+    # Note: 
+    #
+    # Session Parameters:
+    #   :options => any of the javax.jms.Session constants
+    #      Default: javax.jms.Session::AUTO_ACKNOWLEDGE
+    #
+    #   :session_count : Number of sessions to create, each with their own consumer which
+    #                    in turn will call the supplied block.
+    #                    Note: The supplied block must be thread safe since it will be called
+    #                          by several threads at the same time.
+    #                          I.e. Don't change instance variables etc. without the
+    #                          necessary semaphores etc.
+    #                    Default: 1
+    #
+    # Consumer Parameters:
+    #   :queue_name => Name of the Queue to read messages from
+    #
+    #   :selector   => Filter which messages should be returned from the queue
+    #                  Default: All messages
+    #   :no_local   => Determine whether messages published by its own connection
+    #                  should be delivered to it
+    #                  Default: false
+    #                  
+    #   :statistics Capture statistics on how many messages have been read
+    #      true  : This method will capture statistics on the number of messages received
+    #              and the time it took to process them.
+    #              The timer starts when each() is called and finishes when either the last message was received,
+    #              or when Destination::statistics is called. In this case MessageConsumer::statistics
+    #              can be called several times during processing without affecting the end time.
+    #              Also, the start time and message count is not reset until MessageConsumer::each
+    #              is called again with :statistics => true
+    #
+    #              The statistics gathered are returned when :statistics => true and :async => false
+    #
+    # Usage: For transacted sessions (the default) the Proc supplied must return
+    #        either true or false:
+    #          true => The session is committed
+    #          false => The session is rolled back
+    #          Any Exception => The session is rolled back
+    #
+    # Notes: 
+    # * Remember to call ::start on the factory otherwise the on_message will not
+    #   start consuming any messages
+    # * Remember to call message.acknowledge before completing the block so that
+    #       the message will be removed from the queue
+    # * If the block throws an exception, the 
+    def on_message(parms, &proc)
+      consumer_count = parms[:session_count] || 1
+      consumer_count.times do
+        session = self.create_session(parms)
+        consumer = session.create_consumer_from_params(parms)
+        consumer.on_message(parms, &proc)
+        @consumers << consumer
+        @sessions << session
+      end
+    end
 
-    # Create a new Factory and Session
-    # 
-    #  Creates a new factory and session, then passes the session to the supplied
-    #  block. Upon completion the session and factory are both closed
-    # See Factory::initialize and Factory::create_session for the list
-    #  of parameters
-    def self.session(params={},&proc)
-      raise "Missing mandatory code block" unless proc
-      factory = nil
-      session = nil
-      begin
-        if params.kind_of?(String)
-          # TODO: Support passing username and password from URI to Session
-          factory = self.new(params)
-          session = factory.session({}, &proc)
-        else
-          factory = self.new(params[:connector] || {})
-          session = factory.session(params[:session] || {}, &proc)
-        end
-      ensure
-        session.close if session
-        factory.close if factory
-      end
-    end
-    
-    # Create a new Factory along with a Session, and then start the session
-    # 
-    #  Creates a new factory and session, then passes the session to the supplied
-    #  block. Upon completion the session and factory are both closed
-    # See Factory::initialize and Factory::create_session for the list
-    #  of parameters
-    def self.start(params={},&proc)
-      session(params) do |session|
-        session.start
-        proc.call(session)
-      end
-    end
-    
-    # Call the supplied code block after creating a factory instance
-    # See initialize for the parameter list
-    # The factory is closed before returning
-    # 
-    # Returns the result of the code block
-    def self.create_factory(params={}, &proc)
-      raise "Missing mandatory code block" unless proc
-      factory = nil
-      result = nil
-      begin
-        factory=self.new(params)
-        result = proc.call(factory)
-      ensure
-        factory.close
-      end
-      result
-    end
+    def on_message_statistics
+      @consumers.collect{|consumer| consumer.on_message_statistics}
+    end    
 
   end
   

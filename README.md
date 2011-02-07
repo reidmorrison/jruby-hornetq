@@ -44,6 +44,8 @@ HornetQ
 
 For information on the HornetQ messaging and queuing system, see:
 
+For more documentation on any of the classes, see: http://hornetq.sourceforge.net/docs/hornetq-2.1.0.Final/api/index.html?org/hornetq/api/core/client/package-summary.html
+
 Concepts & Terminology
 ----------------------
 

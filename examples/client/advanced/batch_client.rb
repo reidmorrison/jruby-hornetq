@@ -25,7 +25,7 @@ request_address = 'jms.queue.ExampleQueue'
 
 config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')['development']
 
-class BatchClient
+class BatchClientPattern
   def initialize(session, request_address)
     @producer = session.create_producer(request_address)
     reply_queue = "#{request_address}.#{Java::java.util::UUID.randomUUID.toString}"
@@ -62,7 +62,7 @@ class BatchClient
     #print "Sending #{total_count} messages"
     start_time = Time.now
     total_count.times do |i|
-      message = @session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
+      message = @session.create_message(HornetQ::Client::Message::TEXT_TYPE,true)
       message.reply_to_queue_name = @consumer.queue_name
       message.body = "Request Current Time. #{i}"
       @producer.send(message)
@@ -99,7 +99,7 @@ end
 HornetQ::Client::Factory.session(config) do |session|
   batching_size = total_count if batching_size > total_count
   
-  client = BatchClient.new(session, request_address)
+  client = BatchClientPattern.new(session, request_address)
   
   # Start receive thread
   receive_thread = Thread.new {client.receive}

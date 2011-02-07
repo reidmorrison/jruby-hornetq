@@ -1,8 +1,8 @@
 module HornetQ::Client
-  # Create a Server for receiving requests and replying
-  #   to arbitrary queues
+  # Create a Server following the ServerPattern for receiving requests and 
+  # replying to arbitrary queues
   # Create an instance of this class per thread
-  class Server
+  class ServerPattern
     def initialize(session, request_queue, timeout)
       @session = session
       @consumer = session.create_consumer(request_queue)

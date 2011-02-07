@@ -1,7 +1,8 @@
 module HornetQ::Client
 
-  # Send a request to a server and wait for a reply  
-  class Requestor
+  # Implements the Requestor Pattern 
+  #   Send a request to a server and wait for a reply  
+  class RequestorPattern
     def initialize(session, request_address)
       @session = session
       @producer = session.create_producer(request_address)

@@ -16,17 +16,19 @@ client:
     :username:          guest
     :password:          guest
 
-queues:
-  :queue1:
-    :address:   my_address
-    :queue:     my_queue1
-    :serialize: ruby_marshal
-    :unique:    true
-    :durable:   true
+  :addresses:
+    address1:
+      :serialize: ruby_marshal
+      :unique:    true
+      :durable:   true
+      :queues:
+        queue1_1:
+        queue1_2:
 
-  :queue2:
-    :address:   my_address
-    :queue:     my_queue2
-    :serialize: json
-    :unique:    true
-    :durable:   true
+    address2:
+      :serialize: json
+      :unique:    false
+      :durable:   false
+      :queues:
+        queue2_1:
+        queue2_2:

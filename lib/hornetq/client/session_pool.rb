@@ -49,7 +49,6 @@ module HornetQ::Client
         s = factory.create_session(session_params)
         # Start the session since it will be used immediately upon creation
         s.start
-        puts "Creating Session"
         s
       end
 
