@@ -12,5 +12,13 @@ module Java::org.hornetq.api.core.client::ClientSession
   def create_server(input_queue, timeout=0)
     HornetQ::Client::Server.new(self, input_queue, timeout)
   end
+
+  def create_queue_ignore_exists(address, queue, durable)
+    begin
+      create_queue(address, queue, durable)
+    rescue Java::org.hornetq.api.core.HornetQException => e
+      raise unless e.cause.code == Java::org.hornetq.api.core.HornetQException::QUEUE_EXISTS
+    end
+  end
 end
 
