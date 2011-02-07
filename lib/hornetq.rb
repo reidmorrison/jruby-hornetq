@@ -1,8 +1,4 @@
 include Java
-require 'hornetq/server'
-require 'hornetq/client'
-require 'hornetq/uri'
-require 'hornetq/common/logging'
 
 module HornetQ
 
@@ -30,3 +26,8 @@ module HornetQ
   end
 
 end
+
+require 'hornetq/server'
+require 'hornetq/client'
+require 'hornetq/uri'
+require 'hornetq/common/logging'
