@@ -167,6 +167,8 @@ module HornetQ
         end
 
         @factory = nil
+        @sessions = []
+        @consumers = []
         # In-VM Transport has no fail-over or additional parameters
         if uri.host == 'invm'
           transport = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::INVM_CONNECTOR_CLASS_NAME)
@@ -300,9 +302,13 @@ module HornetQ
       #  * :ack_batch_size
       #    * the batch size of the acknowledgements
       #
+      # * :auto_close
+      #   * true: closing the factory will automatically close the session
+      #   * false: the caller is expected to close the session
+      #
       def create_session(params={})
         raise "HornetQ::Client::Factory Already Closed" unless @factory
-        @factory.create_session(
+        session = @factory.create_session(
           params[:username],
           params[:password],
           params[:xa] || false,
@@ -310,6 +316,8 @@ module HornetQ
           params[:auto_commit_acks].nil? ? true : params[:auto_commit_acks],
           params[:pre_acknowledge] || false,
           params[:ack_batch_size] || 1)
+        (@sessions << session) if params[:auto_close]
+        session
       end
 
       # Create a session, call the supplied block and once it completes
@@ -367,6 +375,7 @@ module HornetQ
 
       # Close Factory connections
       def close
+        @sessions.each { |session| session.close }
         @factory.close if @factory
         @factory = nil
       end

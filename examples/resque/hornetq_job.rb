@@ -1,5 +1,5 @@
 # Allow examples to be run in-place without requiring a gem install
-$LOAD_PATH.unshift File.dirname(__FILE__) + '/../../../lib'
+$LOAD_PATH.unshift File.dirname(__FILE__) + '/../../lib'
 
 require 'rubygems'
 require 'resque/job_with_status' # in rails you would probably do this in an initializer

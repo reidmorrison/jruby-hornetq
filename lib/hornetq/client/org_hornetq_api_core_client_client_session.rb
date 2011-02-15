@@ -158,7 +158,8 @@ module Java::org.hornetq.api.core.client::ClientSession
       server.close if server
     end
   end
-  
+
+  # Create a queue if it doesn't already exist
   def create_queue_ignore_exists(address, queue, durable)
     begin
       create_queue(address, queue, durable)

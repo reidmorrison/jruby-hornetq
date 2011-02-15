@@ -12,7 +12,7 @@
 # Once 80% of the replies are back, it will send the next batch
 
 # Allow examples to be run in-place without requiring a gem install
-$LOAD_PATH.unshift File.dirname(__FILE__) + '/../../../lib'
+$LOAD_PATH.unshift File.dirname(__FILE__) + '/../../lib'
 
 require 'rubygems'
 require 'yaml'

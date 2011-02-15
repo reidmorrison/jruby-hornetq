@@ -1,0 +1,26 @@
+standalone_server:
+  :uri:                 hornetq://localhost
+  :data_directory:      ./data
+  :persistence_enabled: true
+  :security_enabled:    false
+
+client:
+  :connector:
+    :uri:   hornetq://localhost
+  :session:
+    :username:          guest
+    :password:          guest
+    :auto_close:        true
+  :session_pool:
+    :pool_size:         3
+    :pool_warn_timeout: 0.25
+    :username:          guest
+    :password:          guest
+
+  :constants:
+    :address1:    address1
+    :address2:    address2
+    :queue1_1:    queue1_1
+    :queue1_2:    queue1_2
+    :queue2_1:    queue2_1
+    :queue2_2:    queue2_2

@@ -4,7 +4,7 @@ module HornetQ
     def self.load_requirements
       HornetQ.require_jar 'hornetq-core'
       HornetQ.require_jar 'netty'
-      require 'hornetq/org_hornetq_core_server_hornet_q_server'
+      require 'hornetq/server/org_hornetq_core_server_hornet_q_server'
     end
   end
 end
