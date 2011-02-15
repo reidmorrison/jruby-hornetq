@@ -15,7 +15,7 @@ config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')['development']
 
 # Create a HornetQ session
 HornetQ::Client::Factory.session(config) do |session|
-  producer = session.create_producer('jms.queue.ExampleQueue')
+  producer = session.create_producer('TestAddress')
   start_time = Time.now
 
   puts "Sending messages"

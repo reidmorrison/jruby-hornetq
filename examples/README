@@ -1,0 +1,6 @@
+Most of the examples will run in-place without requiring a gem install.  However,
+to start the hornetq_server you must set the following environment variables
+adjusting the value of jruby-hornetq-home as necessary.
+
+export RUBYLIB=<jruby-hornetq-home>/lib
+export PATH=<jruby-hornetq-home>/bin:$PATH

@@ -4,6 +4,9 @@
 #          Creates multiple threads for processing of messages.
 #
 
+# Allow examples to be run in-place without requiring a gem install
+$LOAD_PATH.unshift File.dirname(__FILE__) + '/../../lib'
+
 require 'rubygems'
 require 'yaml'
 require 'hornetq'
@@ -32,6 +35,7 @@ def create_workers(address, queue, count, sleep_time, is_durable, &block)
       prefix = "#{address}-#{queue}-#{thread_count}"
       begin
         consumer = session.create_consumer(queue)
+        session.start
         puts "#{prefix} waiting for message"
         while msg = consumer.receive
           case msg['format']
@@ -46,6 +50,12 @@ def create_workers(address, queue, count, sleep_time, is_durable, &block)
           sleep sleep_time
         end
         puts "#{prefix} end of thread"
+      rescue Java::org.hornetq.api.core.HornetQException => e
+        if e.cause.code != Java::org.hornetq.api.core.HornetQException::OBJECT_CLOSED
+          puts "#{prefix} HornetQException: #{e.message}\n#{e.backtrace.join("\n")}"
+        else
+          # Normal exit
+        end
       rescue Exception => e
         puts "#{prefix} Exception: #{e.message}\n#{e.backtrace.join("\n")}"
       end
