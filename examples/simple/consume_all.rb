@@ -1,6 +1,6 @@
 #
 # HornetQ Consumer:
-#          Write a single message to the queue
+#          Read a single message from the queue
 #
 
 # Allow examples to be run in-place without requiring a gem install

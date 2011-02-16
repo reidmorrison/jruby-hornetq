@@ -2,7 +2,24 @@
 
 # For the HornetQ Java documentation for this class see:
 #  http://hornetq.sourceforge.net/docs/hornetq-2.1.0.Final/api/index.html?org/hornetq/api/core/client/ClientConsumer.html
-
+#
+# Other methods still directly accessible through this class:
+#
+# void 	close()
+#          Closes the consumer
+#          
+# boolean 	closed?
+#          Returns whether the consumer is closed or not
+#
+# Note: receive can be used directly, but it is recommended to use #each where possible 
+#                    
+# ClientMessage 	receive()
+#          Receives a message from a queue
+# ClientMessage 	receive(long timeout)
+#          Receives a message from a queue
+# ClientMessage 	receive_immediate()
+#          Receives a message from a queue
+#          
 class Java::org.hornetq.core.client.impl::ClientConsumerImpl
   
   # For each message available to be consumed call the block supplied
@@ -23,27 +40,27 @@ class Java::org.hornetq.core.client.impl::ClientConsumerImpl
   #              and the time it took to process them.
   #              Statistics are cumulative between calls to ::each and will only be
   #              reset when ::each is called again with :statistics => true
-  def each(parms={}, &proc)
+  def each(params={}, &proc)
     raise "Consumer::each requires a code block to be executed for each message received" unless proc
 
     message_count = nil
     start_time = nil
-    timeout = (parms[:timeout] || 0).to_i
+    timeout = (params[:timeout] || 0).to_i
 
-    if parms[:statistics]
+    if params[:statistics]
       message_count = 0
       start_time = Time.now
     end
 
     # Receive messages according to timeout
-    while message = self.receive_with_timeout(timeout) do
+    while message = receive_with_timeout(timeout) do
       proc.call(message)
       message_count += 1 if message_count
     end
 
     unless message_count.nil?
       duration = Time.now - start_time
-      {:messages => message_count,
+      { :count => message_count,
         :duration => duration,
         :messages_per_second => (message_count/duration).to_i}
     end
@@ -67,10 +84,10 @@ class Java::org.hornetq.core.client.impl::ClientConsumerImpl
   #
   #              The statistics gathered are returned when :statistics => true and :async => false
   #
-  def on_message(parms={}, &proc)
+  def on_message(params={}, &proc)
     raise "Consumer::on_message requires a code block to be executed for each message received" unless proc
 
-    @listener = HornetQ::Client::MessageHandler.new(parms, &proc)
+    @listener = HornetQ::Client::MessageHandler.new(params, &proc)
     self.setMessageListener @listener
   end
 

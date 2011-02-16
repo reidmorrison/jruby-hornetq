@@ -1,6 +1,6 @@
 #
 # HornetQ Consumer:
-#          Write messages to the queue
+#          Consumer messages from the Queue
 #
 
 # Allow examples to be run in-place without requiring a gem install
@@ -15,22 +15,18 @@ timeout = (ARGV[0] || 1000).to_i
 config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')['development']
 
 # Create a HornetQ session
-HornetQ::Client::Connection.session(config) do |session|
-  session.create_queue_ignore_exists('TestAddress', 'TestQueue', false)
-  consumer = session.create_consumer('TestQueue')
-  session.start
+HornetQ::Client::Connection.start(config) do |session|
   
-  count = 0
-  start_time = Time.now
-  while message = consumer.receive(timeout)
-    count = count + 1
+  # Create the non-durable TestQueue to receive messages sent to the TestAddress
+  session.create_queue_ignore_exists('TestAddress', 'TestQueue', false)
+  
+  # Consume All messages from the queue
+  stats = session.consume(:queue_name => 'TestQueue', :timeout=> 0, :statistics=>true) do |message|
     message.acknowledge
     puts "=================================="
     text = message.body
     p text
     p message
-    puts "Durable" if message.durable
   end
-  duration = Time.now - start_time - timeout/1000
-  puts "Received #{count} messages in #{duration} seconds at #{count/duration} messages per second"
+  puts "Received #{stats[:count]} messages in #{stats[:duration]} seconds at #{stats[:messages_per_second]} messages per second"
 end

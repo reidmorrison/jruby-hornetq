@@ -89,9 +89,6 @@
 
 module Java::org.hornetq.api.core.client::ClientSession
   
-  # Document Methods from Java Docs:
-  # create_queue(address, queue_name, durable?)
-
   # Creates a ClientConsumer to consume or browse messages matching the filter 
   # from the queue with the given name, calls the supplied block, then close the
   # consumer
@@ -126,12 +123,64 @@ module Java::org.hornetq.api.core.client::ClientSession
   #     msg.acknowledge
   #   end
   def consumer(params={}, &block)
+    raise "Missing mandatory code block" unless block
     consumer = nil
     begin
       consumer = create_consumer_from_params(params)
       block.call(consumer)
     ensure
       consumer.close if consumer
+    end
+  end
+  
+  # Consume or browse all messages matching the filter from the queue with the 
+  # given name, calls the supplied block for every message received from the 
+  # queue. Once the timeout has been reached it closes the consumer
+  # 
+  # Parameters:
+  #   :timeout How to timeout waiting for messages
+  #     -1 : Wait forever
+  #      0 : Return immediately if no message is available (default)
+  #      x : Wait for x milli-seconds for a message to be received from the server
+  #           Note: Messages may still be on the queue, but the server has not supplied any messages
+  #                 in the time interval specified
+  #      Default: 0
+  #   :queue_name  => The name of the queue to consume messages from. Mandatory
+  #   :filter      => Only consume messages matching the filter: Default: nil
+  #   :browse_only => Whether to just browse the queue or consume messages
+  #                   true | false. Default: false
+  #   :window_size => The consumer window size.
+  #   :max_rate    => The maximum rate to consume messages.
+  #
+  #   :statistics Capture statistics on how many messages have been read
+  #      true  : This method will capture statistics on the number of messages received
+  #              and the time it took to process them.
+  #              Statistics are cumulative between calls to ::each and will only be
+  #              reset when ::each is called again with :statistics => true
+  #   
+  #   Note: If either :window_size or :max_rate is supplied, then BOTH are required
+  #  
+  # Returns the statistics gathered when :statistics => true, otherwise nil
+  #
+  # Example
+  #   session.consume(:queue_name => 'my_queue', :timeout => 1000) do |message|
+  #     p message
+  #     message.acknowledge
+  #   end
+  #   
+  # Example
+  #   # Just browse the messages without consuming them
+  #   session.consume(:queue_name => 'my_queue', :timeout => 1000, :browse_only => true) do |message|
+  #     p message
+  #     message.acknowledge
+  #   end
+  def consume(params, &block)
+    raise "Missing mandatory code block" unless block
+    c = self.create_consumer_from_params(params)
+    begin
+      c.each(params, &block)
+    ensure
+      c.close
     end
   end
   
@@ -161,21 +210,24 @@ module Java::org.hornetq.api.core.client::ClientSession
   # Returns a new Consumer that can be used for consuming messages from
   # the queue
   def create_consumer_from_params(params={})
-    queue_name = params.kind_of?(Hash) ? params[:queue_name] : params
-    raise("Missing mandatory parameter :queue_name") unless queue_name
-    
-    if params[:max_rate] || params[:window_size]
-      self.create_consumer(
-        queue_name, 
-        params[:filter], 
-        params[:window_size],
-        params[:max_rate],
-        params[:browse_only].nil? ? false : params[:browse_only])
+    if params.kind_of?(Hash)      
+      raise("Missing mandatory parameter :queue_name") unless queue_name = params[:queue_name]
+      
+      if params[:max_rate] || params[:window_size]
+        self.create_consumer(
+          queue_name, 
+          params[:filter], 
+          params[:window_size],
+          params[:max_rate],
+          params.fetch(:browse_only, false))
+      else
+        self.create_consumer(
+          queue_name, 
+          params[:filter], 
+          params.fetch(:browse_only, false))
+      end
     else
-      self.create_consumer(
-        queue_name, 
-        params[:filter], 
-        params[:browse_only].nil? ? false : params[:browse_only])
+      self.create_consumer(params)
     end
   end
 

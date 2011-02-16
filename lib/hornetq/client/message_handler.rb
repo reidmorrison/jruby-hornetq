@@ -12,10 +12,10 @@ module HornetQ::Client
     #              or when Consumer::on_message_statistics is called. In this case on_message_statistics::statistics
     #              can be called several times during processing without affecting the end time.
     #              The start time and message count is never reset for this instance
-    def initialize(parms={}, &proc)
+    def initialize(params={}, &proc)
       @proc = proc
 
-      if parms[:statistics]
+      if params[:statistics]
         @message_count = 0
         @start_time = Time.now
       end
