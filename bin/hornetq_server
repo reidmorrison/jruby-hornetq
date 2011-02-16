@@ -32,10 +32,10 @@ if ARGV[0] =~ /\.ya?ml$/
     config = config[ARGV[i]] || config[ARGV[i].to_sym]
   end
   puts "config=#{config.inspect}"
-  server = HornetQ::Server::Factory.create_server(config)
+  server = HornetQ::Server.create_server(config)
 else
   uri = ARGV[0]
-  server = HornetQ::Server::Factory.create_server(uri)
+  server = HornetQ::Server.create_server(uri)
 end
 server.enable_shutdown_on_signal
 server.start
