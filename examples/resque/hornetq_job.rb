@@ -129,7 +129,7 @@ class HornetQJob < Resque::JobWithStatus
     
     # Create a HornetQ session
     count = 0
-    HornetQ::Client::Factory.session('hornetq://localhost') do |session|
+    HornetQ::Client::Connection.session('hornetq://localhost') do |session|
       batching_size = total_count if batching_size > total_count
   
       client = BatchClient.new(session, address)

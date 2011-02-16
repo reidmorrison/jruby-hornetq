@@ -9,7 +9,7 @@ $LOAD_PATH.unshift File.dirname(__FILE__) + '/../../lib'
 require 'rubygems'
 require 'hornetq'
 
-HornetQ::Client::Factory.start(:connector=> {:uri => 'hornetq://localhost'}) do |session|
+HornetQ::Client::Connection.start(:connector=> {:uri => 'hornetq://localhost'}) do |session|
   consumer = session.create_consumer('jms.queue.ExampleQueue')
   
   # Receive a single message, return immediately if no message available

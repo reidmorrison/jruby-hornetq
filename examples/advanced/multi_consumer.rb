@@ -44,10 +44,10 @@ def worker(id, session)
 end
 
 # Create a HornetQ session
-HornetQ::Client::Factory.create_factory(config[:connector]) do |factory|
+HornetQ::Client::Connection.create_factory(config[:connector]) do |connection|
   threads = []
   $thread_count.times do |i|
-    session = factory.create_session(config[:session])
+    session = connection.create_session(config[:session])
     threads << Thread.new { worker(i, session) }
   end
   threads.each {|t| t.join}

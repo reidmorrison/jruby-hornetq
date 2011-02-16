@@ -11,7 +11,7 @@ require 'hornetq'
 
 timeout = (ARGV[0] || 60000).to_i
 
-HornetQ::Client::Factory.start(:connector=> {:uri => 'hornetq://localhost'}) do |session|
+HornetQ::Client::Connection.start(:connector=> {:uri => 'hornetq://localhost'}) do |session|
   server = session.create_server('jms.queue.ExampleQueue', timeout)
 
   puts "Waiting for Requests..."  

@@ -15,7 +15,7 @@ module HornetQ::Client
   #   end
   #
   # Parameters:
-  #   see regular session parameters from: HornetQ::Client::Factory::create_session
+  #   see regular session parameters from: HornetQ::Client::Connection::create_session
   #
   # Additional parameters for controlling the session pool itself
   #   :pool_name         Name of the pool as it shows up in the logger.
@@ -30,12 +30,12 @@ module HornetQ::Client
   #                      For example: Rails.logger
   #                      Default: None.
   # Example:
-  #   session_pool = factory.create_session_pool(config)
+  #   session_pool = connection.create_session_pool(config)
   #   session_pool.session do |session|
   #      ....
   #   end
   class SessionPool
-    def initialize(factory, params={})
+    def initialize(connection, params={})
       # Save Session params since it will be used every time a new session is
       # created in the pool
       session_params = params.nil? ? {} : params.dup
@@ -46,7 +46,7 @@ module HornetQ::Client
         :pool_size => session_params[:pool_size] || 10,
         :warn_timeout => session_params[:pool_warn_timeout] || 5,
         :logger       => session_params[:pool_logger]) do
-        s = factory.create_session(session_params)
+        s = connection.create_session(session_params)
         # Start the session since it will be used immediately upon creation
         s.start
         s

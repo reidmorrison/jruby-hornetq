@@ -44,12 +44,12 @@ def worker_thread(id, session_pool)
   puts "Thread[#{id}]: Complete"
 end
 
-# Create a HornetQ Factory 
-HornetQ::Client::Factory.create_factory(config[:connector]) do |factory|
+# Create a HornetQ Connection 
+HornetQ::Client::Connection.create_factory(config[:connector]) do |connection|
   
   # Create a pool of session connections, all with the same session parameters
   # The pool is thread-safe and can be accessed concurrently by multiple threads
-  session_pool = factory.create_session_pool(config[:session])
+  session_pool = connection.create_session_pool(config[:session])
   threads = []
   
   # Do some work and then lets re-use the session in another thread below

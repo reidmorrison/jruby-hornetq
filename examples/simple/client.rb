@@ -11,7 +11,7 @@ require 'hornetq'
 
 timeout = (ARGV[0] || 5000).to_i
 
-HornetQ::Client::Factory.start(:connector=> {:uri => 'hornetq://localhost'}) do |session|
+HornetQ::Client::Connection.start(:connector=> {:uri => 'hornetq://localhost'}) do |session|
   requestor = session.create_requestor('jms.queue.ExampleQueue')
 
   # Create non-durable message

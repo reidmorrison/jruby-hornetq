@@ -4,9 +4,9 @@ module HornetQ
   # 
   private
 
-  # HornetQ requires a factory from which it can create a logger per thread and/or class 
+  # HornetQ requires a connection from which it can create a logger per thread and/or class 
   class LogDelegateFactory
-    include 
+    include Java::org.hornetq.spi.core.logging::LogDelegateFactory
     
     def createDelegate(klass)
       LogDelegate.new(klass.name)

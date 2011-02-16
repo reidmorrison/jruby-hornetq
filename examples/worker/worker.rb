@@ -16,19 +16,19 @@ require 'json'
 $config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')
 $client_config = $config['client']
 $session_config = $client_config[:session]
-$factory = HornetQ::Client::Factory.new($client_config[:connector])
+$connection = HornetQ::Client::Connection.new($client_config[:connector])
 
 ['HUP', 'INT', 'TERM'].each do |signal_name|
   Signal.trap(signal_name) do
     puts "caught #{signal_name}"
-    $factory.close
+    $connection.close
   end
 end
 
 $threads = []
 def create_workers(address, queue, count, sleep_time, is_durable, &block)
   (1..count).each do |i|
-    session = $factory.create_session($session_config)
+    session = $connection.create_session($session_config)
     puts "Creating queue address=#{address} queue=#{queue}" if i==1
     session.create_queue_ignore_exists(address, queue, is_durable) if i == 1
     $threads << Thread.new(i, session) do |thread_count, session|

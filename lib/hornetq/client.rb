@@ -8,7 +8,7 @@ module HornetQ
   end
 end
 
-require 'hornetq/client/factory'
+require 'hornetq/client/connection'
 require 'hornetq/common/org_hornetq_core_logging_logger'
 require 'hornetq/client/org_hornetq_api_core_client_client_session'
 require 'hornetq/client/org_hornetq_core_client_impl_client_message_impl'

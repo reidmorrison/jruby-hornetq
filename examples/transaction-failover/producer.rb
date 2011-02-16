@@ -16,7 +16,7 @@ config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')
 constants = config['constants']
 
 # Create a HornetQ session
-HornetQ::Client::Factory.session(config['client']) do |session|
+HornetQ::Client::Connection.session(config['client']) do |session|
   session.create_queue_ignore_exists(constants[:address], constants[:queue], constants[:durable])
   producer = session.create_producer(constants[:address])
   start_time = Time.now

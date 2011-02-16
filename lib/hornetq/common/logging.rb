@@ -2,7 +2,7 @@
 module HornetQ
   # Returns the logger being used by both HornetQ and jruby-hornetq
   def self.logger
-    @logger ||= (rails_logger || default_logger)
+    @logger ||= (self.rails_logger || self.default_logger)
   end
 
   # Replace the logger for both HornetQ and jruby-hornetq
@@ -10,7 +10,9 @@ module HornetQ
   def self.logger=(logger)
     @logger = logger
     # Also replace the HornetQ logger
-    Java::org.hornetq.core.logging::Logger.setDelegateFactory(HornetQ::LogDelegateFactory.new)
+    if @logger
+      Java::org.hornetq.core.logging::Logger.setDelegateFactory(HornetQ::LogDelegateFactory.new)
+    end
     # TODO org.hornetq.core.logging.Logger.setDelegateFactory(org.hornetq.integration.logging.Log4jLogDelegateFactory.new)
   end
 
@@ -22,11 +24,8 @@ module HornetQ
 
   # By default we use the HornetQ Logger
   def self.default_logger
+    # Needs an actual Java class, so give it: org.hornetq.api.core.client::HornetQClient
     Java::org.hornetq.core.logging::Logger.getLogger(org.hornetq.api.core.client::HornetQClient)
-    #    require 'logger'
-    #    l = Logger.new(STDOUT)
-    #    l.level = Logger::INFO
-    #    l
   end
 
 end

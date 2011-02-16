@@ -1,38 +1,42 @@
 module HornetQ
   module Client
 
-    class Factory
-      # Create a new Factory and Session
+    class Connection
+      # Create a new Connection and Session
       #
-      #  Creates a new factory and session, then passes the session to the supplied
-      #  block. Upon completion the session and factory are both closed
-      # See Factory::initialize and Factory::create_session for the list
+      #  Creates a new connection and session, then passes the session to the supplied
+      #  block. Upon completion the session and connection are both closed
+      # See Connection::initialize and Connection::create_session for the list
       #  of parameters
+      #
+      # Returns result of block
       def self.session(params={},&proc)
         raise "Missing mandatory code block" unless proc
-        factory = nil
+        connection = nil
         session = nil
         begin
           if params.kind_of?(String)
             # TODO: Support passing username and password from URI to Session
-            factory = self.new(params)
-            session = factory.session({}, &proc)
+            connection = self.new(params)
+            session = connection.session({}, &proc)
           else
-            factory = self.new(params[:connector] || {})
-            session = factory.session(params[:session] || {}, &proc)
+            connection = self.new(params[:connector] || {})
+            session = connection.session(params[:session] || {}, &proc)
           end
         ensure
           session.close if session
-          factory.close if factory
+          connection.close if connection
         end
       end
 
-      # Create a new Factory along with a Session, and then start the session
+      # Create a new Connection along with a Session, and then start the session
       #
-      #  Creates a new factory and session, then passes the session to the supplied
-      #  block. Upon completion the session and factory are both closed
-      # See Factory::initialize and Factory::create_session for the list
+      #  Creates a new connection and session, then passes the session to the supplied
+      #  block. Upon completion the session and connection are both closed
+      # See Connection::initialize and Connection::create_session for the list
       #  of parameters
+      #  
+      # Returns result of block
       def self.start(params={},&proc)
         session(params) do |session|
           session.start
@@ -40,30 +44,30 @@ module HornetQ
         end
       end
 
-      # Call the supplied code block after creating a factory instance
+      # Call the supplied code block after creating a connection instance
       # See initialize for the parameter list
-      # The factory is closed before returning
+      # The connection is closed before returning
       #
       # Returns the result of the code block
-      def self.create_factory(params={}, &proc)
+      def self.connection(params={}, &proc)
         raise "Missing mandatory code block" unless proc
-        factory = nil
+        connection = nil
         result = nil
         begin
-          factory=self.new(params)
-          result = proc.call(factory)
+          connection=self.new(params)
+          result = proc.call(connection)
         ensure
-          factory.close
+          connection.close
         end
         result
       end
 
-      # Create a new Factory from which sessions can be created
+      # Create a new Connection from which sessions can be created
       #
       # Parameters:
       # * a Hash consisting of one or more of the named parameters
       # * Summary of parameters and their default values
-      #  HornetQ::Client::Factory.new(
+      #  HornetQ::Client::Connection.new(
       #    :uri                            => 'hornetq://localhost',
       #    :ack_batch_size                 => ,
       #    :auto_group                     => ,
@@ -166,43 +170,43 @@ module HornetQ
           params = uri.params.merge(params)
         end
 
-        @factory = nil
+        @connection = nil
         @sessions = []
         @consumers = []
         # In-VM Transport has no fail-over or additional parameters
         if uri.host == 'invm'
           transport = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::INVM_CONNECTOR_CLASS_NAME)
-          @factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport)
+          @connection = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport)
         elsif params[:protocol]
           # Auto-Discovery just has a host name and port
           if params[:protocol] == 'discovery'
-            @factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(uri.host, uri.port)
+            @connection = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(uri.host, uri.port)
           elsif params[:protocol] != 'netty'
             raise "Unknown HornetQ protocol:#{params[:protocol]}"
           end
         end
 
-        # Unless already created, then the factory will use the netty protocol
-        unless @factory
+        # Unless already created, then the connection will use the netty protocol
+        unless @connection
           # Primary Transport
           transport = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_CONNECTOR_CLASS_NAME, {'host' => uri.host, 'port' => uri.port })
 
           # Check for backup server connection information
           if uri.backup_host
             backup_transport = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_CONNECTOR_CLASS_NAME, {'host' => uri.backup_host, 'port' => uri.backup_port })
-            @factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport, backup_transport)
+            @connection = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport, backup_transport)
           else
-            @factory = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport)
+            @connection = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport)
           end
         end
 
-        # If any other options were supplied, apply them to the created Factory instance
+        # If any other options were supplied, apply them to the created Connection instance
         params.each_pair do |key, val|
           next if key == :uri
           method = key.to_s+'='
-          if @factory.respond_to? method
-            @factory.send method, val
-            #puts "Debug: #{key} = #{@factory.send key}" if @factory.respond_to? key.to_sym
+          if @connection.respond_to? method
+            @connection.send method, val
+            #puts "Debug: #{key} = #{@connection.send key}" if @connection.respond_to? key.to_sym
           else
             puts "Warning: Option:#{key}, with value:#{val} is invalid and being ignored"
           end
@@ -216,11 +220,11 @@ module HornetQ
       #
       # Note:
       # * The returned session MUST be closed once complete
-      #     factory = HornetQ::Client::Factory.new(:uri => 'hornetq://localhost/')
-      #     session = factory.create_session
+      #     connection = HornetQ::Client::Connection.new(:uri => 'hornetq://localhost/')
+      #     session = connection.create_session
       #       ...
       #     session.close
-      #     factory.close
+      #     connection.close
       #
       # Returns:
       # * A new HornetQ ClientSession
@@ -233,11 +237,11 @@ module HornetQ
       # Example:
       #   require 'hornetq'
       #
-      #   factory = nil
+      #   connection = nil
       #   session = nil
       #   begin
-      #     factory = HornetQ::Client::Factory.new(:uri => 'hornetq://localhost/')
-      #     session = factory.create_session
+      #     connection = HornetQ::Client::Connection.new(:uri => 'hornetq://localhost/')
+      #     session = connection.create_session
       #
       #     # Create a new queue
       #     session.create_queue('Example', 'Example', true)
@@ -253,13 +257,13 @@ module HornetQ
       #     producer.send(message)
       #   ensure
       #     session.close if session
-      #     factory.close if factory
+      #     connection.close if connection
       #   end
       #
       # Parameters:
       # * a Hash consisting of one or more of the named parameters
       # * Summary of parameters and their default values
-      #  factory.create_session(
+      #  connection.create_session(
       #   :username          => 'my_username',   # Default is no authentication
       #   :password          => 'password',      # Default is no authentication
       #   :xa                => false,
@@ -303,12 +307,13 @@ module HornetQ
       #    * the batch size of the acknowledgements
       #
       # * :auto_close
-      #   * true: closing the factory will automatically close the session
-      #   * false: the caller is expected to close the session
+      #   * true: closing the connection will also automatically close the 
+      #           returned session
+      #   * false: the caller must close the session
       #
       def create_session(params={})
-        raise "HornetQ::Client::Factory Already Closed" unless @factory
-        session = @factory.create_session(
+        raise "HornetQ::Client::Connection Already Closed" unless @connection
+        session = @connection.create_session(
           params[:username],
           params[:password],
           params[:xa] || false,
@@ -327,17 +332,17 @@ module HornetQ
       # Returns the result of the block
       #
       # Example
-      #     HornetQ::Client::Factory.create_session(:uri => 'hornetq://localhost/') do |session|
+      #     HornetQ::Client::Connection.create_session(:uri => 'hornetq://localhost/') do |session|
       #       session.create_queue("Address", "Queue")
       #     end
       #
       # Example:
       #   require 'hornetq'
       #
-      #   factory = nil
+      #   connection = nil
       #   begin
-      #     factory = HornetQ::Client::Factory.new(:uri => 'hornetq://localhost/')
-      #     factory.create_session do |session|
+      #     connection = HornetQ::Client::Connection.new(:uri => 'hornetq://localhost/')
+      #     connection.create_session do |session|
       #
       #       # Create a new queue
       #       session.create_queue('Example', 'Example', true)
@@ -353,7 +358,7 @@ module HornetQ
       #       producer.send(message)
       #     end
       #   ensure
-      #     factory.close if factory
+      #     connection.close if connection
       #   end
       def session(params={}, &proc)
         raise "HornetQ::Client::session mandatory block missing" unless proc
@@ -373,11 +378,11 @@ module HornetQ
         SessionPool.new(self, params)
       end
 
-      # Close Factory connections
+      # Close Connection connections
       def close
         @sessions.each { |session| session.close }
-        @factory.close if @factory
-        @factory = nil
+        @connection.close if @connection
+        @connection = nil
       end
 
       # Receive messages in a separate thread when they arrive
@@ -427,7 +432,7 @@ module HornetQ
       #          Any Exception => The session is rolled back
       #
       # Notes:
-      # * Remember to call ::start on the factory otherwise the on_message will not
+      # * Remember to call ::start on the connection otherwise the on_message will not
       #   start consuming any messages
       # * Remember to call message.acknowledge before completing the block so that
       #       the message will be removed from the queue

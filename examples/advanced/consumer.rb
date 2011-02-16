@@ -15,7 +15,7 @@ timeout = (ARGV[0] || 1000).to_i
 config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')['development']
 
 # Create a HornetQ session
-HornetQ::Client::Factory.session(config) do |session|
+HornetQ::Client::Connection.session(config) do |session|
   session.create_queue_ignore_exists('TestAddress', 'TestQueue', false)
   consumer = session.create_consumer('TestQueue')
   session.start

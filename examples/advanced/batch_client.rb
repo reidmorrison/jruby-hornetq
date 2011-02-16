@@ -96,7 +96,7 @@ class BatchClientPattern
 end
 
 # Create a HornetQ session
-HornetQ::Client::Factory.session(config) do |session|
+HornetQ::Client::Connection.session(config) do |session|
   batching_size = total_count if batching_size > total_count
   
   client = BatchClientPattern.new(session, request_address)

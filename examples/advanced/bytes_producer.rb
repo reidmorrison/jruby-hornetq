@@ -9,7 +9,7 @@ $LOAD_PATH.unshift File.dirname(__FILE__) + '/../../lib'
 require 'rubygems'
 require 'hornetq'
 
-HornetQ::Client::Factory.session('hornetq://localhost') do |session|
+HornetQ::Client::Connection.session('hornetq://localhost') do |session|
   # Create Producer so that we can send messages to the Address 'jms.queue.ExampleQueue'
   producer = session.create_producer('jms.queue.ExampleQueue')
   

@@ -1,9 +1,9 @@
 # Extend HornetQ Logger class to respond to standard Rails/Ruby log methods
-#   
+#
 # The following methods are already implemented by the java class
 #   initialize
 #   delegate
-#   
+#
 # The following methods are being replaced so that they can support blocks
 #   trace
 #   debug
@@ -11,7 +11,7 @@
 #   warn
 #   error
 #   fatal
-#   
+#
 # The following methods are new
 #   trace?
 #   debug?
@@ -19,7 +19,7 @@
 #   warn?
 #   error?
 #   fatal?
-#   
+#
 
 # This has to be a "mix-in" because the class can return instances of itself
 class org.hornetq.core.logging::Logger
@@ -29,21 +29,23 @@ class org.hornetq.core.logging::Logger
   def #{level}?
     #{level}_enabled?
   end
-  
-  # Support logging with block parameters that only get evaluated if the 
+
+  alias :java_#{level} :#{level}
+
+  # Support logging with block parameters that only get evaluated if the
   # matching log level is enabled
   def #{level}(message=nil, &block)
     if #{level}?
       if block
-        java_send :#{level}, block.call
+        java_#{level}(block.call.to_s.to_java_string)
       else
-        java_send :#{level}, message        
+        java_#{level}(message.to_s.to_java_string)
       end
     end
   end
 LOG_LEVEL_METHOD
   end
-  
+
   private
   # Implement since not implemented by Logger
   def error_enabled?
