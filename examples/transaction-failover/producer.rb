@@ -17,7 +17,7 @@ constants = config['constants']
 
 # Create a HornetQ session
 HornetQ::Client::Factory.session(config['client']) do |session|
-  session.create_queue(constants[:address], constants[:queue], constants[:durable])
+  session.create_queue_ignore_exists(constants[:address], constants[:queue], constants[:durable])
   producer = session.create_producer(constants[:address])
   start_time = Time.now
 
@@ -26,7 +26,8 @@ HornetQ::Client::Factory.session(config['client']) do |session|
     message = session.create_message(HornetQ::Client::Message::TEXT_TYPE, true)
     # Set the message body text
     message.body = "Message ##{i}"
-    message.put_string_property(Java::org.hornetq.api.core.SimpleString.new(HornetQ::Client::Message::HDR_DUPLICATE_DETECTION_ID.to_s), Java::org.hornetq.api.core.SimpleString.new("uniqueid#{i}"))
+    # TODO: Figure out why this isn't working as expected
+    message[HornetQ::Client::Message::HDR_DUPLICATE_DETECTION_ID] = "uniqueid#{i}"
     # Send message to the queue
     begin
       producer.send(message)
@@ -44,3 +45,4 @@ HornetQ::Client::Factory.session(config['client']) do |session|
   duration = Time.now - start_time
   puts "Delivered #{count} messages in #{duration} seconds at #{count/duration} messages per second"
 end
+

@@ -16,8 +16,11 @@ client:
     :uri:                            hornetq://localhost:15445,localhost:15446
     :failover_on_initial_connection: true
     :failover_on_server_shutdown:    true
-    # 5 Connection attempts takes about 16 seconds before it switches to the backup server
-    :reconnect_attempts:             5
+    # Retry at 0.5, 1.0, 2.0, 4.0, 5.0
+    :reconnect_attempts:             4
+    :retry_interval:                 500
+    :retry_interval_multiplier:      2.0
+    :max_retry_interval:             5000
 
   :session:
     :username: guest
