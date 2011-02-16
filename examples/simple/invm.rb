@@ -10,23 +10,22 @@ require 'rubygems'
 require 'hornetq'
 
 # Create and start an InVM HornetQ server instance
-HornetQ::Server::Factory.start('hornetq://invm') do |server|
+HornetQ::Server.start('hornetq://invm') do |server|
   # Allow a CTRL-C to stop this process
   server.enable_shutdown_on_signal
 
   HornetQ::Client::Connection.start('hornetq://invm') do |session|
     session.create_queue("MyAddress","MyQueue", nil, false)
-  
+
     producer = session.create_producer('MyAddress')
     consumer = session.create_consumer('MyQueue')
-  
+
     # Create a non-durable message to send
     message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
     message.body = "#{Time.now}: ### Hello, World ###"
-  
+
     producer.send(message)
-  
-  
+
     # Receive a single message, return immediately if no message available
     if message = consumer.receive_immediate
       puts "Received:[#{message.body}]"

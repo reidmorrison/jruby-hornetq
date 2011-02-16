@@ -1,6 +1,7 @@
 raise "jruby-hornetq must be built with JRuby: try again with `jruby -S rake'" unless defined?(JRUBY_VERSION)
 
 require 'rake/clean'
+require 'rake/testtask'
 require 'date'
 require 'java'
 
@@ -8,7 +9,7 @@ desc "Build gem"
 task :gem  do |t|
   gemspec = Gem::Specification.new do |s|
     s.name = 'jruby-hornetq'
-    s.version = '0.2.6.alpha'
+    s.version = '0.3.0.alpha'
     s.authors = ['Reid Morrison', 'Brad Pardee']
     s.email = ['rubywmq@gmail.com', 'bpardee@gmail.com']
     s.homepage = 'https://github.com/ClarityServices/jruby-hornetq'
@@ -21,4 +22,14 @@ task :gem  do |t|
     s.add_dependency "gene_pool", "~> 1.1.1"
   end
   Gem::Builder.new(gemspec).build
+end
+
+desc "Run Test Suite"
+task :test do
+  Rake::TestTask.new(:functional) do |t|
+    t.test_files = FileList['test/*_test.rb']
+    t.verbose    = true
+  end
+
+  Rake::Task['functional'].invoke
 end

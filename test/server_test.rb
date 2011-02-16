@@ -23,7 +23,7 @@ class ServerFactoryTest < Test::Unit::TestCase
       @tmp_data_dir = "/tmp/data_dir/#{$$}"
       @uri          = "hornetq://localhost:15445"
       @server_thread = MyThread.new('standalone server') do
-        @server = HornetQ::Server::Factory.create_server(:uri => @uri, :data_directory => @tmp_data_dir)
+        @server = HornetQ::Server.create_server(:uri => @uri, :data_directory => @tmp_data_dir)
         @server.start
       end
       # Give the server time to startup
@@ -86,7 +86,7 @@ class ServerFactoryTest < Test::Unit::TestCase
 
       @backup_server_thread = MyThread.new('backup server') do
         begin
-          @backup_server = HornetQ::Server::Factory.create_server(:uri => @backup_uri, :data_directory => @backup_tmp_data_dir, :backup => true)
+          @backup_server = HornetQ::Server.create_server(:uri => @backup_uri, :data_directory => @backup_tmp_data_dir, :backup => true)
           @backup_server.start
         rescue Exception => e
           puts "Error in backup server thread: #{e.message}\n#{e.backtrace.join("\n")}"
@@ -97,7 +97,7 @@ class ServerFactoryTest < Test::Unit::TestCase
 
       @server_thread = MyThread.new('live server') do
         begin
-          @server = HornetQ::Server::Factory.create_server(:uri => @uri, :data_directory => @tmp_data_dir)
+          @server = HornetQ::Server.create_server(:uri => @uri, :data_directory => @tmp_data_dir)
           @server.start
         rescue Exception => e
           puts "Error in live server thread: #{e.message}\n#{e.backtrace.join("\n")}"
