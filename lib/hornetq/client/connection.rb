@@ -437,12 +437,13 @@ module HornetQ
       # * Remember to call message.acknowledge before completing the block so that
       #       the message will be removed from the queue
       # * If the block throws an exception, the
-      def on_message(parms, &proc)
-        consumer_count = parms[:session_count] || 1
+      def on_message(params, &proc)
+        consumer_count = params[:session_count] || 1
         consumer_count.times do
-          session = self.create_session(parms)
-          consumer = session.create_consumer_from_params(parms)
-          consumer.on_message(parms, &proc)
+          session = self.create_session(params)
+          consumer = session.create_consumer_from_params(params)
+          consumer.on_message(params, &proc)
+          session.start
           @consumers << consumer
           @sessions << session
         end

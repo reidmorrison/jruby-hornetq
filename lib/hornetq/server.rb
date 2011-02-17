@@ -7,20 +7,20 @@ module HornetQ
       require 'hornetq/server/org_hornetq_core_server_hornet_q_server'
     end
 
-    def self.create_server(parms={})
+    def self.create_server(params={})
       self.load_requirements
 
-      if parms.kind_of?(String)
-        uri = HornetQ::URI.new(parms)
-        parms = uri.params
+      if params.kind_of?(String)
+        uri = HornetQ::URI.new(params)
+        params = uri.params
       else
-        raise "Missing :uri param in HornetQ::Server.create_server" unless parms[:uri]
-        uri = HornetQ::URI.new(parms.delete(:uri))
-        # parms override uri params
-        parms = uri.params.merge(parms)
+        raise "Missing :uri param in HornetQ::Server.create_server" unless params[:uri]
+        uri = HornetQ::URI.new(params.delete(:uri))
+        # params override uri params
+        params = uri.params.merge(params)
       end
       config = Java::org.hornetq.core.config.impl.ConfigurationImpl.new
-      data_directory = parms.delete(:data_directory) || HornetQ::DEFAULT_DATA_DIRECTORY
+      data_directory = params.delete(:data_directory) || HornetQ::DEFAULT_DATA_DIRECTORY
       config.paging_directory = "#{data_directory}/paging"
       config.bindings_directory = "#{data_directory}/bindings"
       config.journal_directory = "#{data_directory}/journal"
@@ -48,7 +48,7 @@ module HornetQ
         config.journal_type = Java::org.hornetq.core.server.JournalType::NIO
       end
 
-      if parms[:backup]
+      if params[:backup]
         puts "backup"
         config.backup = true
         config.shared_store = false
@@ -64,7 +64,7 @@ module HornetQ
         puts 'standalone'
       end
 
-      parms.each_pair do |key, val|
+      params.each_pair do |key, val|
         method = key.to_s+'='
         if config.respond_to? method
           config.send method, val

@@ -27,7 +27,7 @@ def worker_thread(id, session_pool)
     session_pool.requestor('jms.queue.ExampleQueue') do |session, requestor|
       message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
       message.body = "Request Current Time"
-    
+
       # Send message to the queue
       puts "Thread[#{id}]: Sending Request"
       if reply = requestor.request(message, $timeout)
@@ -44,23 +44,23 @@ def worker_thread(id, session_pool)
   puts "Thread[#{id}]: Complete"
 end
 
-# Create a HornetQ Connection 
+# Create a HornetQ Connection
 HornetQ::Client::Connection.create_factory(config[:connector]) do |connection|
-  
+
   # Create a pool of session connections, all with the same session parameters
   # The pool is thread-safe and can be accessed concurrently by multiple threads
   session_pool = connection.create_session_pool(config[:session])
   threads = []
-  
+
   # Do some work and then lets re-use the session in another thread below
-  worker_thread(9999, session_pool) 
-  
+  worker_thread(9999, session_pool)
+
   $thread_count.times do |i|
     # Each thread will get a session from the session pool as needed
     threads << Thread.new { worker_thread(i, session_pool) }
   end
   threads.each {|t| t.join}
-  
+
   # Important. Remember to close any open sessions in the pool
   session_pool.close
 end
