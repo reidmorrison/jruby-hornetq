@@ -29,18 +29,13 @@ class BatchClientPattern
   def initialize(connection, request_address)
     @session = connection.create_session
     @producer = @session.create_producer(request_address)
-    reply_queue = "#{request_address}.#{Java::java.util::UUID.randomUUID.toString}"
-    begin
-      @session.create_temporary_queue(reply_queue, reply_queue)
-    rescue NativeException => exc
-      p exc
-    end
-    @consumer = @session.create_consumer(reply_queue)
+    @reply_queue = "#{request_address}.#{Java::java.util::UUID.randomUUID.toString}"
+    @session.create_temporary_queue(@reply_queue, @reply_queue)
     @counter_sync = Sync.new
     @counter = 0
     
     # Start consuming replies
-    connection.on_message(reply_queue) {|message| process_reply(message) }
+    connection.on_message(:queue_name => @reply_queue) {|message| process_reply(message) }
   end
   
   # Increment Message Counter
@@ -64,7 +59,7 @@ class BatchClientPattern
     start_time = Time.now
     total_count.times do |i|
       message = @session.create_message(HornetQ::Client::Message::TEXT_TYPE,true)
-      message.reply_to_queue_name = @consumer.queue_name
+      message.reply_to_queue_name = @reply_queue
       message.body = "Request Current Time. #{i}"
       @producer.send(message)
       print "."
@@ -77,15 +72,12 @@ class BatchClientPattern
   # Receive Reply messages
   def process_reply(message)
     print '@'
-    #        puts "Received:#{reply}, [#{reply.body}]"
     inc_counter(1)
     message.acknowledge
   end
   
   def close
     @producer.close
-    @consumer.close
-    @session.delete_queue(@consumer.queue_name)
     @session.close
   end
 end

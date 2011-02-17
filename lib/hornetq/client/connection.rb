@@ -306,10 +306,14 @@ module HornetQ
       #  * :ack_batch_size
       #    * the batch size of the acknowledgements
       #
-      # * :auto_close
-      #   * true: closing the connection will also automatically close the 
-      #           returned session
-      #   * false: the caller must close the session
+      # * :managed
+      #   * true: The session will be managed by the connection. It will be
+      #           closed when the connection is closed.
+      #           Also the session will be started or stopped when
+      #           Connection#start_managed_sessions or
+      #           Connection#stop_managed_sessions is called
+      #   * false: The caller is responsible for closing the session
+      #   * Default: false
       #
       def create_session(params={})
         raise "HornetQ::Client::Connection Already Closed" unless @connection
@@ -321,7 +325,7 @@ module HornetQ
           params[:auto_commit_acks].nil? ? true : params[:auto_commit_acks],
           params[:pre_acknowledge] || false,
           params[:ack_batch_size] || 1)
-        (@sessions << session) if params[:auto_close]
+        (@sessions << session) if params.fetch(:managed, false)
         session
       end
 
@@ -398,7 +402,6 @@ module HornetQ
       end
 
       # Create a Session pool
-      # TODO Raise an exception when gene_pool is not available
       def create_session_pool(params={})
         require 'hornetq/client/session_pool'
         SessionPool.new(self, params)
@@ -432,13 +435,16 @@ module HornetQ
       #                    Default: 1
       #
       # Consumer Parameters:
-      #   :queue_name => Name of the Queue to read messages from
-      #
-      #   :selector   => Filter which messages should be returned from the queue
-      #                  Default: All messages
-      #   :no_local   => Determine whether messages published by its own connection
-      #                  should be delivered to it
-      #                  Default: false
+      #   :queue_name  => The name of the queue to consume messages from. Mandatory
+      #   :filter      => Only consume messages matching the filter: Default: nil
+      #   :browse_only => Whether to just browse the queue or consume messages
+      #                   true | false. Default: false
+      #   :window_size => The consumer window size.
+      #   :max_rate    => The maximum rate to consume messages.
+      #   :auto_start  => Immediately start processing messages.
+      #                   If set to false, call Connection#start_managed_sessions
+      #                   to manually start receive messages later
+      #                   Default: true
       #
       #   :statistics Capture statistics on how many messages have been read
       #      true  : This method will capture statistics on the number of messages received
@@ -469,7 +475,7 @@ module HornetQ
           session = self.create_session(params)
           consumer = session.create_consumer_from_params(params)
           consumer.on_message(params, &proc)
-          session.start
+          session.start if params.fetch(:auto_start, true)
           @consumers << consumer
           @sessions << session
         end
@@ -478,7 +484,28 @@ module HornetQ
       def on_message_statistics
         @consumers.collect{|consumer| consumer.on_message_statistics}
       end
+      
+      # Start all sessions managed by this connection
+      # 
+      # Sessions created via #create_session are not managed unless
+      # :auto_close => true was specified when the session was created
+      # 
+      # Session are Only managed when created through the following methods:
+      #   Connection#on_message
+      #   Connection#create_session And :auto_close => true
+      #
+      # This call does not do anything to sessions in a session pool
+      def start_managed_sessions
+        @sessions.each {|session| session.start}
+      end
 
+      # Stop all sessions managed by this connection so that they no longer
+      # receive messages for processing
+      #
+      # See: #start_managed_sessions for details on which sessions are managed
+      def stop_managed_sessions
+        @sessions.each {|session| session.stop}
+      end
     end
   end  
 end
