@@ -202,7 +202,6 @@ module HornetQ
 
         # If any other options were supplied, apply them to the created Connection instance
         params.each_pair do |key, val|
-          next if key == :uri
           method = key.to_s+'='
           if @connection.respond_to? method
             @connection.send method, val
