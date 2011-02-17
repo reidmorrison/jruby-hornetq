@@ -40,7 +40,7 @@ class ServerTest < Test::Unit::TestCase
       count      = 10
       queue_name = 'test_queue'
       config = {
-        :connector => { :uri => @uri },
+        :connection => { :uri => @uri },
         :session   => { :username =>'guest', :password => 'guest'}
       }
 
@@ -109,7 +109,7 @@ class ServerTest < Test::Unit::TestCase
 #
 #      @queue_name = 'test_queue'
 #      @config = {
-#        :connector => {
+#        :connection => {
 #          :uri                            => @uri,
 #          :failover_on_initial_connection => true,
 #          :failover_on_server_shutdown    => true,

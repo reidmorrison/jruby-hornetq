@@ -45,7 +45,7 @@ def worker_thread(id, session_pool)
 end
 
 # Create a HornetQ Connection
-HornetQ::Client::Connection.create_factory(config[:connector]) do |connection|
+HornetQ::Client::Connection.create_factory(config[:connection]) do |connection|
 
   # Create a pool of session connections, all with the same session parameters
   # The pool is thread-safe and can be accessed concurrently by multiple threads

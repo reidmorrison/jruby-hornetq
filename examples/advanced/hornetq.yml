@@ -1,18 +1,24 @@
 ---
 development:
-  :connector:
+  :connection:
     :uri: hornetq://localhost
+    :failover_on_initial_connection: true
+    :failover_on_server_shutdown: true
+    :reconnect_attempts: 5
   :session:
     :username: guest
     :password: guest
     
 # Example configuration showing all possible options and their default values if available
 full_example:
-  :connector:
+  :connection:
     # The uri is written as follows for the NettyConnectorFactory.
-    #   protocol=netty is the default and therefore not required
     :uri: hornetq://localhost:5445,backuphost:5445/?protocol=netty
-    # Or, the uri is written as follows for the InVM
+    # protocol=netty is the default and therefore not required
+    :uri: hornetq://localhost:5445,backuphost:5445
+    # And since the default port is 5445
+    :uri: hornetq://localhost,backuphost
+    # Or, the uri is written as follows for InVM
     :uri: hornetq://invm
     # Or, the uri is written as follows for auto-discovery
     :uri: hornetq://discoveryhost:5445/?protocol=discovery

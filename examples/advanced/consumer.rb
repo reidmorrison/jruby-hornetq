@@ -1,6 +1,6 @@
 #
 # HornetQ Consumer:
-#          Consume all messages from the queue: TestQueue
+#          Consume all messages from the queue: TestQueue in the current thread
 #          Displays a '.' for every message received
 #          Used for performance measurements of consuming messages
 #
@@ -24,7 +24,7 @@ HornetQ::Client::Connection.start(config) do |session|
   
   # Consume All messages from the queue
   stats = session.consume(:queue_name => 'TestQueue', :timeout=> 0, :statistics=>true) do |message|
-    put '.'
+    print '.'
     message.acknowledge
   end
   puts "Received #{stats[:count]} messages in #{stats[:duration]} seconds at #{stats[:messages_per_second]} messages per second"

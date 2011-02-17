@@ -5,7 +5,7 @@ standalone_server:
   :security_enabled:    false
 
 client:
-  :connector:
+  :connection:
     :uri:   hornetq://localhost
   :session:
     :username:          guest
