@@ -17,7 +17,7 @@ class MyThread < ::Thread
 end
 
 class ServerTest < Test::Unit::TestCase
-  context 'standalone server' do
+  context 'standalone server without security' do
     setup do
       @server       = nil
       @tmp_data_dir = "/tmp/data_dir/#{$$}"
@@ -37,42 +37,42 @@ class ServerTest < Test::Unit::TestCase
     end
 
     should 'pass simple messages' do
-      count      = 10
-      queue_name = 'test_queue'
-      config = {
-        :connection => { :uri => @uri },
-        #:session   => { :username =>'guest', :password => 'guest'}
-      }
-
-      # Create a HornetQ session
-      HornetQ::Client::Connection.session(config) do |session|
-        session.create_queue(queue_name, queue_name, true)
-        producer = session.create_producer(queue_name)
-        (1..count).each do |i|
-          message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
-          message.durable = true
-          # Set the message body text
-          message.body = "Message ##{i}"
-          # Send message to the queue
-          producer.send(message)
-        end
-      end
-
-      HornetQ::Client::Connection.session(config) do |session|
-        consumer = session.create_consumer(queue_name)
-        session.start
-
-        i = 0
-        while message = consumer.receive(1000)
-          i += 1
-          message.acknowledge
-          assert_equal "Message ##{i}", message.body
-        end
-      end
+      config = { :connection => { :uri => @uri } }
+      perform_simple_message_test(config, 'test_queue', 10)
     end
   end
 
-  # TODO: Figure out why producer get's severe error during failover
+  context 'standalone server with security' do
+    setup do
+      @server       = nil
+      @user = 'clarity'
+      @password = 'clarity'
+      @tmp_data_dir = "/tmp/data_dir/#{$$}"
+      @uri          = "hornetq://localhost:15445"
+      @server_thread = MyThread.new('standalone server') do
+        @server = HornetQ::Server.create_server(:uri => @uri, :data_directory => @tmp_data_dir, :cluster_user => @user, :cluster_password => @password)
+        @server.start
+      end
+      # Give the server time to startup
+      sleep 5
+    end
+
+    teardown do
+      @server.stop if @server
+      @server_thread.join if @server_thread
+      FileUtils.rm_rf(@tmp_data_dir)
+    end
+
+    should 'pass simple messages' do
+      config = {
+        :connection => { :uri => @uri },
+        :session   => { :username => @user, :password => @password}
+      }
+      perform_simple_message_test(config, 'test_queue', 10)
+    end
+  end
+
+  # TODO: Figure out why producer gets severe error during failover
 #  context 'live and backup server' do
 #    setup do
 #      @count      = 20
@@ -178,4 +178,31 @@ class ServerTest < Test::Unit::TestCase
 #      end
 #    end
 #  end
+
+  def perform_simple_message_test(config, queue_name, count)
+    HornetQ::Client::Connection.session(config) do |session|
+      session.create_queue(queue_name, queue_name, true)
+      producer = session.create_producer(queue_name)
+      (1..count).each do |i|
+        message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
+        message.durable = true
+        # Set the message body text
+        message.body = "Message ##{i}"
+        # Send message to the queue
+        producer.send(message)
+      end
+    end
+
+    HornetQ::Client::Connection.session(config) do |session|
+      consumer = session.create_consumer(queue_name)
+      session.start
+
+      i = 0
+      while message = consumer.receive(1000)
+        i += 1
+        message.acknowledge
+        assert_equal "Message ##{i}", message.body
+      end
+    end
+  end
 end
