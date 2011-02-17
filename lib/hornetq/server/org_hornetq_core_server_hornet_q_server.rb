@@ -5,7 +5,7 @@ module Java::org.hornetq.core.server::HornetQServer
   def enable_shutdown_on_signal
     ['HUP', 'INT', 'TERM'].each do |signal_name|
       Signal.trap(signal_name) do
-        puts "caught #{signal_name}"
+        HornetQ.logger.ifno "Caught #{signal_name}, stopping server"
         stop
       end
     end

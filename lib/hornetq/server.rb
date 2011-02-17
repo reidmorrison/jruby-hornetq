@@ -52,28 +52,28 @@ module HornetQ
       end
 
       if params[:backup]
-        puts "backup"
+        HornetQ.logger.info "Creating backup server"
         config.backup = true
         config.shared_store = false
       elsif uri.backup_host
-        puts "live"
+        HornetQ.logger.info "Creating live server"
         #backup_params.put('reconnectAttempts', -1)
         backup_connector = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_CONNECTOR_CLASS_NAME, {'host' => uri.backup_host, 'port' => uri.backup_port })
         connector_conf_map.put('backup-connector', backup_connector)
         config.backup_connector_name = 'backup-connector'
       elsif uri.host == 'invm'
-        puts 'invm'
+        HornetQ.logger.info 'Creating invm server'
       else
-        puts 'standalone'
+        HornetQ.logger.info 'Creating standalone server'
       end
 
       params.each_pair do |key, val|
         method = key.to_s+'='
         if config.respond_to? method
           config.send method, val
-          #puts "Debug: #{key} = #{config.send key}" if config.respond_to? key.to_sym
+          #HornetQ.logger.debug "#{key} = #{config.send key}" if config.respond_to? key.to_sym
         else
-          puts "Warning: Option:#{key} class=#{key.class} with value:#{val} is invalid and being ignored"
+          HornetQ.logger.warn "Option:#{key} class=#{key.class} with value:#{val} is invalid and being ignored"
         end
       end
 
