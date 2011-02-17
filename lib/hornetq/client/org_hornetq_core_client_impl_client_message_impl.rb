@@ -1,4 +1,34 @@
-
+# 
+# See: http://hornetq.sourceforge.net/docs/hornetq-2.1.0.Final/api/org/hornetq/api/core/client/ClientMessage.html
+# 
+# Other methods still directly accessible through this class:
+#
+# void 	acknowledge()
+#          Acknowledge reception of this message. If the session responsible to 
+#          acknowledge this message has :auto_commit_acks => true, the 
+#          transaction will automatically commit the current transaction. 
+#          Otherwise, this acknowledgement will not be committed until the 
+#          client commits the session transaction
+#          
+# int 	body_size()
+#          Return the size (in bytes) of this message's body
+#          
+# int 	delivery_count()
+#          Returns the number of times this message was delivered
+#          
+# void 	save_to_output_stream(OutputStream out)
+#          Saves the content of the message to the OutputStream
+#          
+# void 	setBodyInputStream(InputStream bodyInputStream)
+#          Sets the body#'s IntputStream.
+#          
+# void 	output_stream=(OutputStream out)
+#          Sets the OutputStream that will receive the content of a message received 
+#          in a non blocking way. This method is used when consuming large messages 
+#          
+# boolean 	waitOutputStreamCompletion(long timeMilliseconds)
+#          Wait the outputStream completion of the message.
+            
 # Cannot add to the interface Java::org.hornetq.api.core::Message because these
 # methods access instance variables in the Java object
 class Java::OrgHornetqCoreClientImpl::ClientMessageImpl
@@ -31,18 +61,78 @@ class Java::OrgHornetqCoreClientImpl::ClientMessageImpl
 
     put_string_property(Java::OrgHornetqCoreClientImpl::ClientMessageImpl::REPLYTO_HEADER_NAME, val)
   end
+  
+  # Returns the message type as one of the following symbols
+  #   :text    => org.hornetq.api.core.Message::TEXT_TYPE
+  #   :bytes   => org.hornetq.api.core.Message::BYTES_TYPE
+  #   :map     => org.hornetq.api.core.Message::MAP_TYPE
+  #   :object  => org.hornetq.api.core.Message::OBJECT_TYPE
+  #   :stream  => org.hornetq.api.core.Message::STREAM_TYPE
+  #   :default => org.hornetq.api.core.Message::DEFAULT_TYPE
+  #   :unknown => Any other value for message type
+  #   
+  # If the type is none of the above, nil is returned
+  #
+  def type_sym
+    case self.type
+    when Java::org.hornetq.api.core.Message::TEXT_TYPE 	#3
+      :text
+    when Java::org.hornetq.api.core.Message::BYTES_TYPE  #4
+      :bytes
+    when Java::org.hornetq.api.core.Message::MAP_TYPE 	#5
+      :map
+    when Java::org.hornetq.api.core.Message::OBJECT_TYPE 	#2
+      :object
+    when Java::org.hornetq.api.core.Message::STREAM_TYPE 	#6
+      :stream
+    when Java::org.hornetq.api.core.Message::DEFAULT_TYPE 	#0
+      :default
+    else
+      :unknown
+    end
+  end
+
+  # Set the message type using a Ruby symbol
+  # Parameters
+  #  sym: Must be any one of the following symbols
+  #   :text    => org.hornetq.api.core.Message::TEXT_TYPE
+  #   :bytes   => org.hornetq.api.core.Message::BYTES_TYPE
+  #   :map     => org.hornetq.api.core.Message::MAP_TYPE
+  #   :object  => org.hornetq.api.core.Message::OBJECT_TYPE
+  #   :stream  => org.hornetq.api.core.Message::STREAM_TYPE
+  #   :default => org.hornetq.api.core.Message::DEFAULT_TYPE
+  #   
+  def type_sym=(sym)
+    case sym
+    when :text
+      self.type = Java::org.hornetq.api.core.Message::TEXT_TYPE 	#3
+    when :bytes
+      self.type = Java::org.hornetq.api.core.Message::BYTES_TYPE  #4
+    when :map
+      self.type = Java::org.hornetq.api.core.Message::MAP_TYPE 	#5
+    when :object
+      self.type = Java::org.hornetq.api.core.Message::OBJECT_TYPE 	#2
+    when :stream
+      self.type = Java::org.hornetq.api.core.Message::STREAM_TYPE 	#6
+    when :default
+      self.type = Java::org.hornetq.api.core.Message::DEFAULT_TYPE 	#0
+    else
+      raise "Invalid message type_sym:#{sym.to_s}"
+    end
+  end
 
   # Return the body for this message
   # TODO: Do remaining message Types
   def body
     # Allow this buffer to be read multiple times
-    body_buffer.reset_reader_index
+    buf = body_buffer
+    buf.reset_reader_index
+    available = body_size
+    
+    return nil if available == 0
 
     case type
     when Java::org.hornetq.api.core.Message::BYTES_TYPE  #4
-      buf = body_buffer
-      buf.reset_reader_index
-      available = body_size
       result = ""      
       bytes_size = 1024
       bytes = Java::byte[bytes_size].new
@@ -187,7 +277,7 @@ class Java::OrgHornetqCoreClientImpl::ClientMessageImpl
   def attributes
     {
       :address => address.nil? ? '' : address.to_string,
-      :type => type,
+      :type => type_sym,
       :durable => durable,
       :expiration => expiration,
       :priority => priority,

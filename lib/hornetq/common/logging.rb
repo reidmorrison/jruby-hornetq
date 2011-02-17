@@ -12,8 +12,22 @@ module HornetQ
     # Also replace the HornetQ logger
     if @logger
       Java::org.hornetq.core.logging::Logger.setDelegateFactory(HornetQ::LogDelegateFactory.new)
+    else
+      Java::org.hornetq.core.logging::Logger.reset      
     end
     # TODO org.hornetq.core.logging.Logger.setDelegateFactory(org.hornetq.integration.logging.Log4jLogDelegateFactory.new)
+  end
+
+  # Use the ruby logger, but add needed trace level logging which will result
+  # in debug log entries
+  def self.ruby_logger(level=nil, target=STDOUT)
+    require 'logger'
+
+    l = ::Logger.new(target)
+    l.instance_eval "alias :trace :debug"
+    l.instance_eval "alias :trace? :debug?"
+    l.level = level || ::Logger::INFO
+    l
   end
 
   private
@@ -27,5 +41,5 @@ module HornetQ
     # Needs an actual Java class, so give it: org.hornetq.api.core.client::HornetQClient
     Java::org.hornetq.core.logging::Logger.getLogger(org.hornetq.api.core.client::HornetQClient)
   end
-
+ 
 end

@@ -24,23 +24,25 @@ module HornetQ
     
     # DRY, generate a method for each required log level
     ['debug', 'error', 'fatal', 'info', 'trace', 'warn'].each do |level|
-      eval <<-LOG_LEVEL_METHOD
-      def #{level}(message)
-        @logger.#{level}("[\#{@class_name}] \#{message}") if is#{level.capitalize}Enabled
-      end
-
-      def #{level}(message, t)
-        if is#{level.capitalize}Enabled
-          @logger.#{level}("[\#{@class_name}] \#{message}. \#{t.to_string}")
-          @logger.#{level}(t.stack_trace.to_string)
+      eval <<LOG_LEVEL_METHOD
+    def #{level}(message, t=nil)
+      logger =  HornetQ::logger
+      if logger.#{level}?
+        if t
+          logger.#{level}("[\#{@class_name}] \#{message}. \#{t.toString}")
+          logger.#{level}(t.stack_trace.toString)
+        else
+          logger.#{level}{"[\#{@class_name}] \#{message}"}
         end
       end
-
-      def is#{level.capitalize}Enabled
-        @logger.#{level}?
-      end
-      LOG_LEVEL_METHOD
     end
 
+    def is#{level.capitalize}Enabled
+      HornetQ::logger.#{level}?
+    end
+
+LOG_LEVEL_METHOD
+    end
+    
   end
 end
