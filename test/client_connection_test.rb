@@ -109,7 +109,7 @@ class ClientConnectionTest < Test::Unit::TestCase
 #    end
 #
 #    should 'Create a session from the connection with block and params' do
-#      HornetQ::Client::Connection.start(@config) do |connection|
+#      HornetQ::Client::Connection.start_session(@config) do |connection|
 #      
 #        session_parms = { 
 #          :transacted => true,
@@ -126,7 +126,7 @@ class ClientConnectionTest < Test::Unit::TestCase
 #    end
 #
 #    should 'Create a session from the connection with block and params opposite test' do
-#      HornetQ::Client::Connection.start(@config) do |connection|
+#      HornetQ::Client::Connection.start_session(@config) do |connection|
 #      
 #        session_parms = { 
 #          :transacted => false,
@@ -144,7 +144,7 @@ class ClientConnectionTest < Test::Unit::TestCase
 #    context 'HornetQ::Client Connection additional capabilities' do
 #    
 #      should 'start an on_message handler' do
-#        HornetQ::Client::Connection.start(@config) do |connection|
+#        HornetQ::Client::Connection.start_session(@config) do |connection|
 #          value = nil
 #          connection.on_message(:transacted => true, :queue_name => :temporary) do |message|
 #            value = "received"

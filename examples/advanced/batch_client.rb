@@ -21,25 +21,26 @@ require 'sync'
 
 total_count = (ARGV[0] || 100).to_i
 batching_size = (ARGV[1] || 10).to_i
-request_address = 'jms.queue.ExampleQueue'
 
+request_address = 'ServerAddress'
 config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')['development']
 
 class BatchClientPattern
-  def initialize(session, request_address)
-    @producer = session.create_producer(request_address)
+  def initialize(connection, request_address)
+    @session = connection.create_session
+    @producer = @session.create_producer(request_address)
     reply_queue = "#{request_address}.#{Java::java.util::UUID.randomUUID.toString}"
     begin
-      session.create_temporary_queue(reply_queue, reply_queue)
+      @session.create_temporary_queue(reply_queue, reply_queue)
     rescue NativeException => exc
       p exc
     end
-    @consumer = session.create_consumer(reply_queue)
-    @session = session
-    session.start
-    
+    @consumer = @session.create_consumer(reply_queue)
     @counter_sync = Sync.new
     @counter = 0
+    
+    # Start consuming replies
+    connection.on_message(reply_queue) {|message| process_reply(message) }
   end
   
   # Increment Message Counter
@@ -74,35 +75,26 @@ class BatchClientPattern
   end
   
   # Receive Reply messages
-  def receive
-    print "Receiving messages"
-    begin
-      while reply = @consumer.receive
-        print '@'
-        #        puts "Received:#{reply}, [#{reply.body}]"
-        inc_counter(1)
-        reply.acknowledge
-      end
-    rescue Exception => exc
-      p exc
-    end
+  def process_reply(message)
+    print '@'
+    #        puts "Received:#{reply}, [#{reply.body}]"
+    inc_counter(1)
+    message.acknowledge
   end
   
   def close
     @producer.close
     @consumer.close
     @session.delete_queue(@consumer.queue_name)
+    @session.close
   end
 end
 
 # Create a HornetQ session
-HornetQ::Client::Connection.session(config) do |session|
+HornetQ::Client::Connection.connection(config[:connection]) do |connection|
   batching_size = total_count if batching_size > total_count
   
-  client = BatchClientPattern.new(session, request_address)
-  
-  # Start receive thread
-  receive_thread = Thread.new {client.receive}
+  client = BatchClientPattern.new(connection, request_address)
   
   times = (total_count/batching_size).to_i
   puts "Performing #{times} loops"
