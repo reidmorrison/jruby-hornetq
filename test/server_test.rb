@@ -21,9 +21,9 @@ class ServerTest < Test::Unit::TestCase
     setup do
       @server       = nil
       @tmp_data_dir = "/tmp/data_dir/#{$$}"
-      @uri          = "hornetq://localhost:15445/?security_enabled=false"
+      @uri          = "hornetq://localhost:15445"
       @server_thread = MyThread.new('standalone server') do
-        @server = HornetQ::Server.create_server(:uri => @uri, :data_directory => @tmp_data_dir)
+        @server = HornetQ::Server.create_server(:uri => @uri, :data_directory => @tmp_data_dir, :security_enabled => false)
         @server.start
       end
       # Give the server time to startup
@@ -31,8 +31,8 @@ class ServerTest < Test::Unit::TestCase
     end
 
     teardown do
-      @server.stop
-      @server_thread.join
+      @server.stop if @server
+      @server_thread.join if @server_thread
       FileUtils.rm_rf(@tmp_data_dir)
     end
 
@@ -41,7 +41,7 @@ class ServerTest < Test::Unit::TestCase
       queue_name = 'test_queue'
       config = {
         :connection => { :uri => @uri },
-        :session   => { :username =>'guest', :password => 'guest'}
+        #:session   => { :username =>'guest', :password => 'guest'}
       }
 
       # Create a HornetQ session
@@ -72,21 +72,22 @@ class ServerTest < Test::Unit::TestCase
     end
   end
 
+  # TODO: Figure out why producer get's severe error during failover
 #  context 'live and backup server' do
 #    setup do
 #      @count      = 20
 #
 #      @server              = nil
 #      @tmp_data_dir        = "/tmp/data_dir/#{$$}"
-#      @uri                 = "hornetq://localhost:15445,localhost:15446/?security_enabled=false"
+#      @uri                 = "hornetq://localhost:15445,localhost:15446"
 #
 #      @backup_server       = nil
 #      @backup_tmp_data_dir = "/tmp/backup_data_dir/#{$$}"
-#      @backup_uri          = "hornetq://localhost:15446/?security_enabled=false"
+#      @backup_uri          = "hornetq://localhost:15446"
 #
 #      @backup_server_thread = MyThread.new('backup server') do
 #        begin
-#          @backup_server = HornetQ::Server.create_server(:uri => @backup_uri, :data_directory => @backup_tmp_data_dir, :backup => true)
+#          @backup_server = HornetQ::Server.create_server(:uri => @backup_uri, :data_directory => @backup_tmp_data_dir, :backup => true, :security_enabled => false)
 #          @backup_server.start
 #        rescue Exception => e
 #          HornetQ.logger.error "Error in backup server thread: #{e.message}\n#{e.backtrace.join("\n")}"
@@ -97,7 +98,7 @@ class ServerTest < Test::Unit::TestCase
 #
 #      @server_thread = MyThread.new('live server') do
 #        begin
-#          @server = HornetQ::Server.create_server(:uri => @uri, :data_directory => @tmp_data_dir)
+#          @server = HornetQ::Server.create_server(:uri => @uri, :data_directory => @tmp_data_dir, :security_enabled => false)
 #          @server.start
 #        rescue Exception => e
 #          HornetQ.logger.error "Error in live server thread: #{e.message}\n#{e.backtrace.join("\n")}"
@@ -114,7 +115,7 @@ class ServerTest < Test::Unit::TestCase
 #          :failover_on_initial_connection => true,
 #          :failover_on_server_shutdown    => true,
 #        },
-#        :session   => { :username =>'guest', :password => 'guest'}
+#        :session   => {}
 #      }
 #
 #      @killer_thread = MyThread.new('killer') do
@@ -175,9 +176,6 @@ class ServerTest < Test::Unit::TestCase
 #        end
 #        assert_equal @count, i
 #      end
-#
-#      killer_thread.join
-#      producer_thread.join
 #    end
 #  end
 end
