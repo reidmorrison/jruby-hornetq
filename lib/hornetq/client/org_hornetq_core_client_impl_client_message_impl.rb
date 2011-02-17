@@ -1,4 +1,13 @@
 # 
+# Message
+# 
+# A Message is a routable instance that has a payload.
+# 
+# The payload (the "body") is opaque to the messaging system. A Message also has
+# a fixed set of headers (required by the messaging system) and properties 
+# (defined by the users) that can be used by the messaging system to route the 
+# message (e.g. to ensure it matches a queue filter). 
+# 
 # See: http://hornetq.sourceforge.net/docs/hornetq-2.1.0.Final/api/org/hornetq/api/core/client/ClientMessage.html
 # 
 # Other methods still directly accessible through this class:
@@ -10,27 +19,101 @@
 #          Otherwise, this acknowledgement will not be committed until the 
 #          client commits the session transaction
 #          
+# Message attribute methods available directly from the Java Message class:
+# 
+# String address()
+#          Returns the address this message is sent to.
+# void 	address=(SimpleString address)
+#          Sets the address to send this message to
+#          
 # int 	body_size()
 #          Return the size (in bytes) of this message's body
 #          
 # int 	delivery_count()
 #          Returns the number of times this message was delivered
 #          
-# void 	save_to_output_stream(OutputStream out)
-#          Saves the content of the message to the OutputStream
+# boolean durable?()
+#          Returns whether this message is durable or not
+# void 	durable=(boolean durable)
+#          Sets whether this message is durable or not.
 #          
-# void 	setBodyInputStream(InputStream bodyInputStream)
-#          Sets the body#'s IntputStream.
+# int 	encode_size()
+#          Returns the size of the encoded message
+#          
+# boolean expired?()
+#          Returns whether this message is expired or not
+#          
+# long 	expiration()
+#          Returns the expiration time of this message
+# void 	expiration=(long expiration)
+#          Sets the expiration of this message.
+#          
+# boolean large_message?()
+#          Returns whether this message is a large message or a regular message
+#          
+# long 	message_id()
+#          Returns the messageID
+#          
+# byte 	priority()
+#          Returns the message priority. 
+#          Values range from 0 (less priority) to 9 (more priority) inclusive. 
+# void 	priority=(byte priority)
+#          Sets the message priority.
+#          Value must be between 0 and 9 inclusive. 
+#          
+# #TODO Add timestamp_time attribute that converts to/from expiration under the covers
+# long 	timestamp()
+#          Returns the message timestamp. The timestamp corresponds to the time 
+#          this message was handled by a HornetQ server. 
+# void 	timestamp=(long timestamp)
+#          Sets the message timestamp.
+#          
+# byte 	type()
+#          Returns this message type
+#          See: type_sym below for dealing with message types using Ruby Symbols
+#          
+# org.hornetq.utils.UUID 	user_id()
+#          Returns the userID - this is an optional user specified UUID that can be set to identify the message and will be passed around with the message
+# void 	user_id=(org.hornetq.utils.UUID userID)
+#          Sets the user ID
+#
+# Methods available directly for dealing with properties:
+# 
+#  boolean 	contains_property?(key)
+#          Returns true if this message contains a property with the given key, false else
+#          
+#  Note: Several other property methods are available directly, but since JRuby
+#        deals with the conversion for you they are not documented here
+#
+# Other methods still directly accessible through this class from its child classes:
+# 
+# HornetQBuffer 	body_buffer()
+#          Returns the message body as a HornetQBuffer
+#           
+# Map<String,Object> 	toMap()
+# 
+# 
+# Methods for dealing with large messages:
+# 
+# void 	save_to_output_stream(OutputStream out)
+#          Saves the content of the message to the OutputStream. 
+#          It will block until the entire content is transfered to the OutputStream. 
+#          
+# void 	body_input_stream=(InputStream bodyInputStream)
+#          Sets the body's IntputStream.
+#          This method is used when sending large messages 
 #          
 # void 	output_stream=(OutputStream out)
 #          Sets the OutputStream that will receive the content of a message received 
 #          in a non blocking way. This method is used when consuming large messages 
 #          
-# boolean 	waitOutputStreamCompletion(long timeMilliseconds)
-#          Wait the outputStream completion of the message.
-            
-# Cannot add to the interface Java::org.hornetq.api.core::Message because these
-# methods access instance variables in the Java object
+# boolean 	wait_output_stream_completion(long timeMilliseconds)
+#          Wait the outputStream completion of the message. This method is used when consuming large messages 
+#          timeMilliseconds - - 0 means wait forever 
+#
+# Developer notes:           
+#   Cannot add to the interface Java::org.hornetq.api.core::Message because these
+#   methods access instance variables in the Java object
 class Java::OrgHornetqCoreClientImpl::ClientMessageImpl
   # Attributes
   # attr_accessor :address, :type, :durable, :expiration, :priority, :timestamp, :user_id
@@ -235,29 +318,6 @@ class Java::OrgHornetqCoreClientImpl::ClientMessageImpl
     property_exists(key.to_s) == true
   end
 
-  # call-seq:
-  #   body_buffer
-  #
-  # Return the message body as a HornetQBuffer
-  #
-
-  # call-seq:
-  #   to_map
-  #
-  # Return the Message as a Map
-  #
-
-  # call-seq:
-  #   remove_property(key)
-  #
-  # Remove a property
-
-  # call-seq:
-  #   contains_property(key)
-  #
-  # Returns true if this message contains a property with the given key
-  # TODO: Symbols?
-
   # Return TypedProperties
   def getProperties
     properties
@@ -277,13 +337,18 @@ class Java::OrgHornetqCoreClientImpl::ClientMessageImpl
   def attributes
     {
       :address => address.nil? ? '' : address.to_string,
-      :type => type_sym,
-      :durable => durable,
+      :body_size => body_size,
+      :delivery_count => delivery_count,
+      :durable? => durable?,
+      :encode_size => encode_size,
+      :expired? => expired?,
       :expiration => expiration,
-      :priority => priority,
+      :large_message? => large_message?,
+      :message_id => message_id,
+      :priority => priority,      
       :timestamp => timestamp,
+      :type_sym => type_sym,
       :user_id => user_id,
-      :encode_size => encode_size
     }
   end
 
