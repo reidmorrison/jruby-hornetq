@@ -1,11 +1,6 @@
 #
 # HornetQ Requestor:
 #      Multithreaded clients all doing requests
-#      Typical scenario is in a Rails app when we need to do a call to a
-#      remote server and block until a response is received
-#
-# Shows how to use the session pool so that not every thread has to have its
-# own session
 #
 
 # Allow examples to be run in-place without requiring a gem install
@@ -15,28 +10,45 @@ require 'rubygems'
 require 'yaml'
 require 'hornetq'
 
-$thread_count = (ARGV[0] || 1).to_i
-$timeout = (ARGV[1] || 30000).to_i
+timeout = (ARGV[0] || 30000).to_i
+thread_count = (ARGV[1] || 2).to_i
+request_count = (ARGV[2] || 5).to_i
 
 config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')['development']
 
 # Sample thread that does some work and then does a request-response call
-def worker_thread(id, session_pool)
+def worker_thread(id, connection, timeout, request_count)
   begin
-    # Obtain a session from the pool and return when complete
-    session_pool.requestor('jms.queue.ExampleQueue') do |session, requestor|
-      message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
-      message.body = "Request Current Time"
-
-      # Send message to the queue
-      puts "Thread[#{id}]: Sending Request"
-      if reply = requestor.request(message, $timeout)
-        puts "Thread[#{id}]: Received Response: #{reply.inspect}"
-        puts "Thread[#{id}]:   Message:[#{reply.body.inspect}]"
-      else
-        puts "Thread[#{id}]: Time out, No reply received after #{$timeout/1000} seconds"
+    connection.start_session do |session|
+      start_time = Time.now
+  
+      # Use Requestor (Client) Pattern to do a "RPC like" call to a server
+      # Under the covers the requestor creates a temporary dynamic reply to queue
+      # for the server to send the reply message to
+      session.requestor('ServerAddress') do |requestor|
+        # Create non-durable message
+        puts "Sending #{request_count} requests"
+        (1..request_count).each do |i|
+          message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
+          message.body = "Some request data"
+          # Set the user managed message id
+          message.user_id = Java::org.hornetq.utils::UUIDGenerator.getInstance.generateUUID
+  
+          if reply = requestor.request(message, timeout)
+            puts "Thread[#{id}]:Received Response: #{reply.inspect}" if request_count < 10
+            puts "Thread[#{id}]:  Message:[#{reply.body.inspect}]" if request_count < 10
+            print ".#{id}" if request_count >= 10
+          else
+            puts "Thread[#{id}]:Time out, No reply received after #{timeout/1000} seconds"
+          end
+          puts "Thread:#{id}=>#{i}" if i%1000 == 0
+        end
       end
+      
+      duration = Time.now - start_time
+      puts "\nThread[#{id}]:Made #{request_count} calls in #{duration} seconds at #{request_count/duration} synchronous requests per second"
     end
+
   rescue Exception => exc
     puts "Thread[#{id}]: Terminating due to Exception:#{exc.inspect}"
     puts exc.backtrace
@@ -45,22 +57,15 @@ def worker_thread(id, session_pool)
 end
 
 # Create a HornetQ Connection
-HornetQ::Client::Connection.create_factory(config[:connection]) do |connection|
-
-  # Create a pool of session connections, all with the same session parameters
-  # The pool is thread-safe and can be accessed concurrently by multiple threads
-  session_pool = connection.create_session_pool(config[:session])
+HornetQ::Client::Connection.connection(config[:connection]) do |connection|
   threads = []
 
-  # Do some work and then lets re-use the session in another thread below
-  worker_thread(9999, session_pool)
-
-  $thread_count.times do |i|
-    # Each thread will get a session from the session pool as needed
-    threads << Thread.new { worker_thread(i, session_pool) }
+  # Start threads passing in an id and the connection so that the thread
+  # can create its own session
+  thread_count.times do |i|
+    threads << Thread.new { worker_thread(i, connection, timeout, request_count) }
   end
+  # Since each thread will terminate once it has completed its required number
+  # of requests, we can just wait for all the threads to terminate
   threads.each {|t| t.join}
-
-  # Important. Remember to close any open sessions in the pool
-  session_pool.close
 end

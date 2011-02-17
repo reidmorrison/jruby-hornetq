@@ -37,7 +37,7 @@ module HornetQ
       #  of parameters
       #  
       # Returns result of block
-      def self.start(params={},&proc)
+      def self.start_session(params={},&proc)
         session(params) do |session|
           session.start
           proc.call(session)
@@ -331,40 +331,66 @@ module HornetQ
       #
       # Returns the result of the block
       #
-      # Example
-      #     HornetQ::Client::Connection.create_session(:uri => 'hornetq://localhost/') do |session|
-      #       session.create_queue("Address", "Queue")
-      #     end
-      #
       # Example:
       #   require 'hornetq'
       #
-      #   connection = nil
-      #   begin
-      #     connection = HornetQ::Client::Connection.new(:uri => 'hornetq://localhost/')
-      #     connection.create_session do |session|
-      #
-      #       # Create a new queue
-      #       session.create_queue('Example', 'Example', true)
+      #   HornetQ::Client::Connection.connection('hornetq://localhost/') do |connection
+      #     connection.session do |session|
       #
       #       # Create a producer to send messages
-      #       producer = session.create_producer('Example')
+      #       session.producer('Example') do |producer|
       #
-      #       # Create a Text Message
-      #       message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,true)
-      #       message.body = 'Hello World'
+      #         # Create a Text Message
+      #         message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,true)
+      #         message.body = 'Hello World'
       #
-      #       # Send the message
-      #       producer.send(message)
+      #         # Send the message
+      #         producer.send(message)
+      #       end
       #     end
-      #   ensure
-      #     connection.close if connection
       #   end
       def session(params={}, &proc)
         raise "HornetQ::Client::session mandatory block missing" unless proc
         session = nil
         begin
           session = create_session(params)
+          proc.call(session)
+        ensure
+          session.close if session
+        end
+      end
+
+      # Create a session, start the session, call the supplied block 
+      # and once the block completes close the session.
+      # 
+      # See: #session_create for the Parameters
+      #
+      # Returns the result of the block
+      #
+      #
+      # Example:
+      #   require 'hornetq'
+      #
+      #   HornetQ::Client::Connection.connection('hornetq://localhost/') do |connection
+      #     # Must start the session other we cannot consume messages using it
+      #     connection.start_session do |session|
+      #
+      #       # Create a consumer to receive messages
+      #       session.consumer('TestQueue') do |consumer|
+      #
+      #         consumer.each do |message|
+      #           message.acknowledge
+      #         end
+      #
+      #       end
+      #     end
+      #   end
+      def start_session(params={}, &proc)
+        raise "HornetQ::Client::session mandatory block missing" unless proc
+        session = nil
+        begin
+          session = create_session(params)
+          session.start
           proc.call(session)
         ensure
           session.close if session

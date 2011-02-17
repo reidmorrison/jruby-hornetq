@@ -14,7 +14,7 @@ HornetQ::Server.start('hornetq://invm') do |server|
   # Allow a CTRL-C to stop this process
   server.enable_shutdown_on_signal
 
-  HornetQ::Client::Connection.start('hornetq://invm') do |session|
+  HornetQ::Client::Connection.start_session('hornetq://invm') do |session|
     session.create_queue("MyAddress","MyQueue", nil, false)
 
     producer = session.create_producer('MyAddress')

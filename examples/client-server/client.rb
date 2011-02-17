@@ -15,7 +15,7 @@ require 'hornetq'
 timeout = (ARGV[0] || 5000).to_i
 
 # Using Connect.start since a session must be started in order to consume messages
-HornetQ::Client::Connection.start('hornetq://localhost') do |session|
+HornetQ::Client::Connection.start_session('hornetq://localhost') do |session|
   
   # Create a non-durable ServerQueue to receive messages sent to the ServerAddress
   session.create_queue_ignore_exists('ServerAddress', 'ServerQueue', false)

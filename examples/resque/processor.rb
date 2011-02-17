@@ -14,7 +14,7 @@ timeout = (ARGV[0] || 300000).to_i
 
 q_name = 'processor'
 
-HornetQ::Client::Connection.start('hornetq://localhost') do |session|
+HornetQ::Client::Connection.start_session('hornetq://localhost') do |session|
   begin
     # Create durable queue with matching address
     session.create_queue(q_name, q_name, true)

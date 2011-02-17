@@ -10,7 +10,7 @@ require 'rubygems'
 require 'hornetq'
 
 # Using Connect.start since a session must be started in order to consume messages
-HornetQ::Client::Connection.start('hornetq://localhost') do |session|
+HornetQ::Client::Connection.start_session('hornetq://localhost') do |session|
   
   # Create the non-durable TestQueue to receive messages sent to the TestAddress
   session.create_queue_ignore_exists('TestAddress', 'TestQueue', false)
