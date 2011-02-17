@@ -18,13 +18,12 @@ module HornetQ
           if params.kind_of?(String)
             # TODO: Support passing username and password from URI to Session
             connection = self.new(params)
-            session = connection.session({}, &proc)
+            connection.session({}, &proc)
           else
             connection = self.new(params[:connection] || {})
-            session = connection.session(params[:session] || {}, &proc)
+            connection.session(params[:session] || {}, &proc)
           end
         ensure
-          session.close if session
           connection.close if connection
         end
       end
@@ -158,6 +157,7 @@ module HornetQ
       # * :use_global_pools
 
       def initialize(params={})
+        params =params.clone
         uri = nil
         # TODO: Support :uri as an array for cluster configurations
         if params.kind_of?(String)
@@ -208,7 +208,7 @@ module HornetQ
             @connection.send method, val
             #puts "Debug: #{key} = #{@connection.send key}" if @connection.respond_to? key.to_sym
           else
-            puts "Warning: Option:#{key}, with value:#{val} is invalid and being ignored"
+            HornetQ.logger.warn "Warning: Option:#{key}, with value:#{val} is invalid and being ignored"
           end
         end
       end

@@ -55,5 +55,9 @@ module HornetQ
     def [](key)
       @params[key]
     end
+
+    def backup?
+      !!@params[:backup]
+    end
   end
 end
