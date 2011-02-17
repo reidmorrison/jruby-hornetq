@@ -44,7 +44,10 @@ module HornetQ
       if Java::org.hornetq.core.journal.impl.AIOSequentialFileFactory.isSupported
         config.journal_type = Java::org.hornetq.core.server.JournalType::ASYNCIO
       else
-        puts("AIO wasn't located on this platform, it will fall back to using pure Java NIO. If your platform is Linux, install LibAIO to enable the AIO journal");
+        require 'rbconfig'
+        if Config::CONFIG['target_os'] == 'linux'
+          HornetQ.logger("AIO wasn't located on this platform, it will fall back to using pure Java NIO. Install LibAIO to enable the AIO journal")
+        end
         config.journal_type = Java::org.hornetq.core.server.JournalType::NIO
       end
 
