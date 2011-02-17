@@ -2,22 +2,27 @@
 # HornetQ Consumer:
 #          Use Connection::on_message to consume all messages in separate
 #          threads so as not to block the main thread
+#          Displays a '.' for every message received
+#          Used for performance measurements of consuming messages
 #
 
 # Allow examples to be run in-place without requiring a gem install
 $LOAD_PATH.unshift File.dirname(__FILE__) + '/../../lib'
 
+require 'yaml'
 require 'rubygems'
 require 'hornetq'
 
 sleep_time = (ARGV[0] || 60000).to_i
 session_count = (ARGV[1] || 1).to_i
 
+config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')['development']
+
 # Using Connect.start since a session must be started in order to consume messages
-HornetQ::Client::Connection.connection('hornetq://localhost') do |connection|
+HornetQ::Client::Connection.connection(config[:connection]) do |connection|
   
   # Create a non-durable TestQueue to receive messages sent to the TestAddress
-  connection.session do |session|
+  connection.session(config[:session]) do |session|
     session.create_queue_ignore_exists('TestAddress', 'TestQueue', false)
   end
   
@@ -31,8 +36,7 @@ HornetQ::Client::Connection.connection('hornetq://localhost') do |connection|
   connection.on_message(:queue_name    => 'TestQueue', 
                         :session_count => session_count,
                         :statistics    => true) do |message|
-    p message
-    puts "=================================="
+    print '.'
     message.acknowledge
   end
   

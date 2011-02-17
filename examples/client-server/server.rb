@@ -15,7 +15,7 @@ require 'hornetq'
 # By default the server will shutdown after 60 seconds, set to 0 to never shutdown
 timeout = (ARGV[0] || 60000).to_i
 
-HornetQ::Client::Connection.start(:connector=> {:uri => 'hornetq://localhost'}) do |session|
+HornetQ::Client::Connection.start(:connection=> {:uri => 'hornetq://localhost'}) do |session|
   # Create a non-durable ServerQueue to receive messages sent to the ServerAddress
   session.create_queue_ignore_exists('ServerAddress', 'ServerQueue', false)
 

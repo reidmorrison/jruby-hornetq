@@ -19,7 +19,7 @@ client = config['client']
 
 # Create a HornetQ session
 logger = Logger.new($stdout)
-connection = HornetQ::Client::Connection.new(client[:connector])
+connection = HornetQ::Client::Connection.new(client[:connection])
 session_pool = connection.create_session_pool(client[:session_pool])
 
 ['HUP', 'INT', 'TERM'].each do |signal_name|

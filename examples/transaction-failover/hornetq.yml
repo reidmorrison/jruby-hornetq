@@ -12,7 +12,7 @@ live_server:
   :security_enabled:    false
 
 client:
-  :connector:
+  :connection:
     :uri:                            hornetq://localhost:15445,localhost:15446
     :failover_on_initial_connection: true
     :failover_on_server_shutdown:    true

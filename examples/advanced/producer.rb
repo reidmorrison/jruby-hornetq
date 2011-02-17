@@ -1,6 +1,8 @@
 #
 # HornetQ Producer:
 #          Write messages to the queue
+#          This example will display the message count after every 1000
+#          messages written to the address
 #
 
 # Allow examples to be run in-place without requiring a gem install
@@ -15,21 +17,21 @@ config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')['development']
 
 # Create a HornetQ session
 HornetQ::Client::Connection.session(config) do |session|
-  producer = session.create_producer('TestAddress')
+  # Create a non-durable TestQueue to receive messages sent to the TestAddress
+  session.create_queue_ignore_exists('TestAddress', 'TestQueue', false)
   start_time = Time.now
-
-  puts "Sending messages"
-  (1..count).each do |i|
-    message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
-    # Set the message body text
-    message.body = "#{Time.now}: ### Hello, World ###"
-    # Send message to the queue
-    producer.send(message)
-    #puts message
-    puts "#{i}\n" if i%1000 == 0
-    puts "Durable" if message.durable
+  
+  session.producer('TestAddress') do |producer|
+    puts "Sending messages"
+    (1..count).each do |i|
+      message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
+      message.body = "#{Time.now}: ### Hello, World ###"
+      
+      producer.send(message)
+      puts "#{i}\n" if i%1000 == 0
+    end
   end
-
+  
   duration = Time.now - start_time
   puts "Delivered #{count} messages in #{duration} seconds at #{count/duration} messages per second"
 end

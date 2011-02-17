@@ -16,7 +16,7 @@ require 'json'
 $config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')
 $client_config = $config['client']
 $session_config = $client_config[:session]
-$connection = HornetQ::Client::Connection.new($client_config[:connector])
+$connection = HornetQ::Client::Connection.new($client_config[:connection])
 
 ['HUP', 'INT', 'TERM'].each do |signal_name|
   Signal.trap(signal_name) do

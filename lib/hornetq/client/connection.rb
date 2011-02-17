@@ -20,7 +20,7 @@ module HornetQ
             connection = self.new(params)
             session = connection.session({}, &proc)
           else
-            connection = self.new(params[:connector] || {})
+            connection = self.new(params[:connection] || {})
             session = connection.session(params[:session] || {}, &proc)
           end
         ensure
