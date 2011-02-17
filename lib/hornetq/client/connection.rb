@@ -443,6 +443,7 @@ module HornetQ
           session = self.create_session(params)
           consumer = session.create_consumer_from_params(params)
           consumer.on_message(params, &proc)
+          session.start
           @consumers << consumer
           @sessions << session
         end

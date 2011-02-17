@@ -292,8 +292,7 @@ module Java::org.hornetq.api.core.client::ClientSession
   # Creates a RequestorPattern to send a request and to synchronously wait for
   # the reply, call the supplied block, then close the requestor
   # Returns the result from the block
-  def requestor(request_address)
-    requestor = nil
+  def requestor(request_address,&block)
     begin
       requestor = self.create_requestor(request_address)
       block.call(requestor)
@@ -312,7 +311,6 @@ module Java::org.hornetq.api.core.client::ClientSession
   # replies, call the supplied block, then close the server
   # Returns the result from the block
   def server(input_queue, timeout=0, &block)
-    server = nil
     begin
       server = self.create_server(input_queue, timeout)
       block.call(server)

@@ -88,7 +88,7 @@ class Java::org.hornetq.core.client.impl::ClientConsumerImpl
     raise "Consumer::on_message requires a code block to be executed for each message received" unless proc
 
     @listener = HornetQ::Client::MessageHandler.new(params, &proc)
-    self.setMessageListener @listener
+    setMessageHandler @listener
   end
 
   # Return the current statistics for a running ::on_message

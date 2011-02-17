@@ -199,7 +199,7 @@ class Java::OrgHornetqCoreClientImpl::ClientMessageImpl
 
   # Does not include the body since it can only read once
   def inspect
-    "#{self.class.name}:\nAttributes: #{attributes.inspect}\nProperties: #{properties.inspect}"
+    "#{self.class.name}:\nBody: #{body.inspect}\nAttributes: #{attributes.inspect}\nProperties: #{properties.inspect}"
   end
 
 end

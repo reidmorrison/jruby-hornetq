@@ -54,7 +54,7 @@ module HornetQ::Client
       raise "First call Consumer::on_message with :statistics=>true before calling MessageConsumer::statistics()" unless @message_count
       duration =(@last_time || Time.now) - @start_time
       { 
-        :messages => @message_count,
+        :count => @message_count,
         :duration => duration,
         :messages_per_second => (@message_count/duration).to_i
       }
