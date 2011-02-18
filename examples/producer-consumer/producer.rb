@@ -17,8 +17,12 @@ HornetQ::Client::Connection.session('hornetq://localhost') do |session|
   
   # Using the Producer pattern send messages to the Address 'TestAddress'
   session.producer('TestAddress') do |producer|
-    # Create a non-durable Text message to send
-    message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
+    # Create a non-durable message
+    message = session.create_message(false)
+    # Mark message as text
+    message.type_sym = :text
+    # Always set the message type prior to setting the body so that the message
+    # is correctly created for you
     message.body = "#{Time.now}: ### Hello, World ###"
   
     producer.send(message)
