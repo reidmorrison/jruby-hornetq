@@ -274,33 +274,27 @@ Contributing
 
 Once you've made your great commits:
 
-1. [Fork][1] Resque
+1. [Fork](http://help.github.com/forking/) jruby-hornetq
 2. Create a topic branch - `git checkout -b my_branch`
 3. Push to your branch - `git push origin my_branch`
-4. Create an [Issue][2] with a link to your branch
+4. Create an [Issue](http://github.com/reidmorrison/jruby-hornetq/issues) with a link to your branch
 5. That's it!
 
 You might want to checkout our [Contributing][cb] wiki page for information
 on coding standards, new features, etc.
 
 
-Mailing List
-------------
-
-TBA
-
 Meta
 ----
 
-* Code: `git clone git://github.com/reidmorrison/jruby-hornetq.git`
-* Home: <http://github.com/reidmorrison/jruby-hornetq>
-* Docs: <http://jruby-hornetq.github.com/jruby-hornetq/>
+* Code: `git clone git://github.com/ClarityServices/jruby-hornetq.git`
+* Home: <https://github.com/ClarityServices/jruby-hornetq>
+* Docs: TODO <http://ClarityServices.github.com/jruby-hornetq/>
 * Bugs: <http://github.com/reidmorrison/jruby-hornetq/issues>
-* List: TBA
-* Gems: <http://gemcutter.org/gems/jruby-hornetq>
+* List: TODO
+* Gems: <http://rubygems.org/gems/jruby-hornetq>
 
-This project uses [Semantic Versioning][sv].
-
+This project uses [Semantic Versioning](http://semver.org/).
 
 Authors
 -------
@@ -308,10 +302,6 @@ Authors
 Reid Morrison :: rubywmq@gmail.com :: @reidmorrison
 
 Brad Pardee :: bpardee@gmail.com
-
-[1]: http://help.github.com/forking/
-[2]: http://github.com/reidmorrison/jruby-hornetq/issues
-[sv]: http://semver.org/
 
 License
 -------
