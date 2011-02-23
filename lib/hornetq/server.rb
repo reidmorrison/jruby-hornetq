@@ -46,7 +46,7 @@ module HornetQ
       else
         require 'rbconfig'
         if Config::CONFIG['target_os'] == 'linux'
-          HornetQ.logger.info("AIO wasn't located on this platform, it will fall back to using pure Java NIO. Install LibAIO to enable the AIO journal")
+          HornetQ.logger.info("AIO wasn't located on this platform, it will fall back to using pure Java NIO. Install libaio and libHornetQAIO to enable the AIO journal")
         end
         config.journal_type = Java::org.hornetq.core.server.JournalType::NIO
       end
