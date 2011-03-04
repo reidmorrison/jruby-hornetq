@@ -10,7 +10,7 @@ client:
   :session:
     :username:          guest
     :password:          guest
-    :auto_close:        true
+    :managed:           true
   :session_pool:
     :pool_size:         3
     :pool_warn_timeout: 0.25

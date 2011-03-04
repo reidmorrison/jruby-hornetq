@@ -487,11 +487,11 @@ module HornetQ
       # Start all sessions managed by this connection
       # 
       # Sessions created via #create_session are not managed unless
-      # :auto_close => true was specified when the session was created
+      # :managed => true was specified when the session was created
       # 
       # Session are Only managed when created through the following methods:
       #   Connection#on_message
-      #   Connection#create_session And :auto_close => true
+      #   Connection#create_session And :managed => true
       #
       # This call does not do anything to sessions in a session pool
       def start_managed_sessions

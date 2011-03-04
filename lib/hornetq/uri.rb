@@ -47,7 +47,7 @@ module HornetQ
           value = false if value == 'false'
           value = value.to_i if value =~ /^\d+$/
           value = value.to_f if value =~ /^\d+\.\d*$/
-          @params[key.to_sym] = value
+          @params[key] = value
         end
       end
     end

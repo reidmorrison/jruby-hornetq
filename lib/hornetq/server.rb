@@ -41,6 +41,18 @@ module HornetQ
       acceptor_conf_set.add(acceptor)
       config.acceptor_configurations = acceptor_conf_set
 
+      more_acceptors = params.delete(:acceptor)
+      if more_acceptors
+        more_acceptors = [more_acceptors] unless more_acceptors.kind_of?(Array)
+        more_acceptors.each do |uri_str|
+          uri = HornetQ::URI.new(uri_str)
+          p = uri.params.merge('host' => uri.host, 'port' => uri.port)
+          puts p.inspect
+          accept = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::NETTY_ACCEPTOR_CLASS_NAME, p)
+          acceptor_conf_set.add(accept)
+        end
+      end
+
       if Java::org.hornetq.core.journal.impl.AIOSequentialFileFactory.isSupported
         config.journal_type = Java::org.hornetq.core.server.JournalType::ASYNCIO
       else
