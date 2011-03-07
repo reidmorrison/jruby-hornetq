@@ -116,7 +116,7 @@ Producer: Write messages to a queue:
     require 'rubygems'
     require 'hornetq'
     
-    HornetQ::Client::Factory.create_session(:connector=> {:uri => 'hornetq://localhost'}) do |session|
+    HornetQ::Client::Factory.create_session(:connection => {:uri => 'hornetq://localhost'}) do |session|
       # Create Producer so that we can send messages to the Address 'jms.queue.ExampleQueue'
       producer = session.create_producer('jms.queue.ExampleQueue')
       
@@ -133,7 +133,7 @@ Consumer: Read message from a queue:
     require 'rubygems'
     require 'hornetq'
     
-    HornetQ::Client::Factory.start(:connector=> {:uri => 'hornetq://localhost'}) do |session|
+    HornetQ::Client::Factory.start(:connection => {:uri => 'hornetq://localhost'}) do |session|
       consumer = session.create_consumer('jms.queue.ExampleQueue')
       
       # Receive a single message, return immediately if no message available
@@ -156,7 +156,7 @@ Server: Receive requests and send back a reply
     # Shutdown Server after 5 minutes of inactivity, set to 0 to wait forever
     timeout = 300000
     
-    HornetQ::Client::Factory.start(:connector=> {:uri => 'hornetq://localhost'}) do |session|
+    HornetQ::Client::Factory.start(:connection => {:uri => 'hornetq://localhost'}) do |session|
       server = session.create_server('jms.queue.ExampleQueue', timeout)
     
       puts "Waiting for Requests..."  
@@ -184,7 +184,7 @@ Client: Send a request and wait for a reply
     # Wait 5 seconds for a reply
     timeout = 5000
     
-    HornetQ::Client::Factory.start(:connector=> {:uri => 'hornetq://localhost'}) do |session|
+    HornetQ::Client::Factory.start(:connection => {:uri => 'hornetq://localhost'}) do |session|
       requestor = session.create_requestor('jms.queue.ExampleQueue')
     
       # Create non-durable message
