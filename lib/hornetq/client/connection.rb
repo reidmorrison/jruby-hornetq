@@ -174,7 +174,8 @@ module HornetQ
         @sessions = []
         @consumers = []
         # In-VM Transport has no fail-over or additional parameters
-        if uri.host == 'invm'
+        @is_invm = uri.host == 'invm'
+        if @is_invm
           transport = Java::org.hornetq.api.core.TransportConfiguration.new(HornetQ::INVM_CONNECTOR_CLASS_NAME)
           @connection = Java::org.hornetq.api.core.client.HornetQClient.create_client_session_factory(transport)
         elsif params[:protocol]
@@ -210,6 +211,11 @@ module HornetQ
             HornetQ.logger.warn "Warning: Option:#{key}, with value:#{val} is invalid and being ignored"
           end
         end
+      end
+
+      # Return true if this connection was configured in INVM transport protocol
+      def invm?
+        @is_invm
       end
 
       # Create a new HornetQ session
@@ -316,6 +322,7 @@ module HornetQ
       #
       def create_session(params={})
         raise "HornetQ::Client::Connection Already Closed" unless @connection
+        params ||= {}
         session = @connection.create_session(
           params[:username],
           params[:password],

@@ -104,7 +104,7 @@ module HornetQ::Client
             producer = s.create_producer(address)
             block.call(s, producer)
           ensure
-            producer.close
+            producer.close if producer
           end
         end
       end
