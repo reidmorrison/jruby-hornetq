@@ -57,7 +57,7 @@ module HornetQ
     end
 
     def backup?
-      !!@params[:backup]
+      !!@params['backup']
     end
   end
 end

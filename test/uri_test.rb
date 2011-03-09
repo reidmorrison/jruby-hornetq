@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'test/unit'
+require 'test_helper'
 require 'shoulda'
 require 'hornetq'
 
@@ -33,9 +34,9 @@ class URITest < Test::Unit::TestCase
       assert_equal HornetQ.netty_port(1234), uri.port
       assert_nil   uri.backup_host
       assert_equal '/zulu', uri.path
-      assert_equal '../abc', uri[:data_directory]
+      assert_equal '../abc', uri['data_directory']
       assert_equal false, uri.backup?
-      assert_equal 'def', uri[:myval]
+      assert_equal 'def', uri['myval']
     end
 
     should 'parse backup server' do
@@ -45,7 +46,7 @@ class URITest < Test::Unit::TestCase
       assert_equal HornetQ.netty_port(5446), uri.port
       assert_nil   uri.backup_host
       assert_equal '/', uri.path
-      assert_equal './data_backup', uri[:data_directory]
+      assert_equal './data_backup', uri['data_directory']
       assert_equal true, uri.backup?
     end
 
