@@ -1,6 +1,5 @@
 require 'rubygems'
 require 'test/unit'
-require 'test_helper'
 require 'shoulda'
 require 'hornetq'
 
