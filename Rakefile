@@ -9,7 +9,7 @@ desc "Build gem"
 task :gem  do |t|
   gemspec = Gem::Specification.new do |s|
     s.name = 'jruby-hornetq'
-    s.version = '0.3.2'
+    s.version = '0.3.3'
     s.authors = ['Reid Morrison', 'Brad Pardee']
     s.email = ['rubywmq@gmail.com', 'bpardee@gmail.com']
     s.homepage = 'https://github.com/ClarityServices/jruby-hornetq'
