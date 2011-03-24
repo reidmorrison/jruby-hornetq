@@ -77,7 +77,7 @@ class BatchClientPattern
     start_time = Time.now
     total_count.times do |i|
       message = @session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
-      message.reply_to_queue_name = @consumer.queue_name
+      message.reply_to_address = @consumer.queue_name
       message.body = "Request Current Time. #{i}"
       @producer.send(message)
       print "."

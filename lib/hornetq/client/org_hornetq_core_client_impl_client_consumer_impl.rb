@@ -13,12 +13,16 @@
 #
 # Note: receive can be used directly, but it is recommended to use #each where possible 
 #                    
-# ClientMessage 	receive()
+# ClientMessage   receive()
 #          Receives a message from a queue
+#          Wait forever until a message is received
 # ClientMessage 	receive(long timeout)
 #          Receives a message from a queue
-# ClientMessage 	receive_immediate()
+#          Returns nil if no message was received after timeout milliseconds
+# ClientMessage   receive_immediate()
 #          Receives a message from a queue
+#          Return immediately if no message is available on the queue
+#          Returns nil if no message available
 #          
 class Java::org.hornetq.core.client.impl::ClientConsumerImpl
   

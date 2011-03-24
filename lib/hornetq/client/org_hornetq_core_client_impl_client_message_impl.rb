@@ -123,18 +123,19 @@ class Java::OrgHornetqCoreClientImpl::ClientMessageImpl
     contains_property(Java::OrgHornetqCoreClientImpl::ClientMessageImpl::REPLYTO_HEADER_NAME)
   end
   
-  # Return the Reply To Queue Name as a string
-  def reply_to_queue_name
+  # Return the Reply To Address as a string
+  def reply_to_address
     get_string_property(Java::OrgHornetqCoreClientImpl::ClientMessageImpl::REPLYTO_HEADER_NAME)
   end
 
-  # Set the Reply To Queue Name
+  # Set the Reply To Address
   #  When supplied, the consumer of the message is expected to send a response to the
-  #  specified queue. However, this is by convention, so no response is guaranteed
+  #  specified address. However, this is by convention, so no response is guaranteed
+  #  
   # Note: Rather than set this directly, consider creating a Client::Requestor:
   #     requestor = session.create_requestor('Request Queue')
   #
-  def reply_to_queue_name=(name)
+  def reply_to_address=(name)
     val = nil
     if name.is_a? Java::org.hornetq.api.core::SimpleString
       val = name

@@ -26,6 +26,8 @@ HornetQ::Client::Connection.session(config) do |session|
     (1..count).each do |i|
       message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
       message.body = "#{Time.now}: ### Hello, World ###"
+      message.body = "#{Time.now}: #{i} : ### Hello, World ###"
+      message.user_id = Java::org.hornetq.utils::UUIDGenerator.getInstance.generateUUID
       
       producer.send(message)
       puts "#{i}\n" if i%1000 == 0

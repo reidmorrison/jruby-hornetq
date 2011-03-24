@@ -25,14 +25,18 @@ module HornetQ::Client
     # Send a reply to the received request message
     #   request: is the message received
     #   reply:   is the message to send to the client
+    #
+    # Note: A reply is only sent if it is a request message. This means that
+    #       the message must have a property named Java::OrgHornetqCoreClientImpl::ClientMessageImpl::REPLYTO_HEADER_NAME
+    #       containing the name of the address to which the response should be sent
     def reply(request_message, reply_message)
       if request_message.request?
         # Reply should have same durability as request
         reply_message.durable = request_message.durable?
-        reply_to = request_message.getSimpleStringProperty(Java::OrgHornetqCoreClientImpl::ClientMessageImpl::REPLYTO_HEADER_NAME);
         # Send request message id back in reply message for correlation purposes
         reply_message.user_id = request_message.user_id
-        @producer.send(reply_to, reply_message)
+        # Send to Reply to address supplied by the caller
+        @producer.send(request_message.reply_to_address, reply_message)
         #puts "Sent reply to #{reply_to.to_s}: #{reply_message.inspect}"
       end
       request_message.acknowledge
