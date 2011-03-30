@@ -53,6 +53,12 @@
 #          
 # long 	message_id()
 #          Returns the messageID
+#          This is an internal message id used by HornetQ itself, it cannot be
+#          set by the user.
+#          The message is only visible when consuming messages, when producing
+#          messages the message_id is Not returned to the caller
+#          Use user_id to carry user supplied message id's for correlating 
+#          responses to requests
 #          
 # byte 	priority()
 #          Returns the message priority. 
@@ -136,14 +142,22 @@ class Java::OrgHornetqCoreClientImpl::ClientMessageImpl
   #     requestor = session.create_requestor('Request Queue')
   #
   def reply_to_address=(name)
-    val = nil
-    if name.is_a? Java::org.hornetq.api.core::SimpleString
-      val = name
-    else
-      val = Java::org.hornetq.api.core::SimpleString.new(name.to_s)
-    end
-
-    put_string_property(Java::OrgHornetqCoreClientImpl::ClientMessageImpl::REPLYTO_HEADER_NAME, val)
+    put_string_property(Java::OrgHornetqCoreClientImpl::ClientMessageImpl::REPLYTO_HEADER_NAME, HornetQ::as_simple_string(name))
+  end
+  
+  # Generate a new user_id
+  #
+  # Sets the user_id to a newly generated id, using a UUID algorithm
+  # 
+  # The user_id is similar to the message_id in other JMS based messaging systems
+  # in fact the HornetQ JMS API uses the user_id as the JMS Message ID.
+  # 
+  # The internal message_id is set by the HornetQ Server and is Not returned
+  # when sending messages
+  # 
+  # Returns generated user_id
+  def generate_user_id
+    self.user_id = Java::org.hornetq.utils::UUIDGenerator.instance.generateUUID
   end
   
   # Returns the message type as one of the following symbols
@@ -349,7 +363,7 @@ class Java::OrgHornetqCoreClientImpl::ClientMessageImpl
       :priority => priority,      
       :timestamp => timestamp,
       :type_sym => type_sym,
-      :user_id => user_id,
+      :user_id => user_id.nil? ? nil : user_id.to_s,
     }
   end
 
@@ -357,5 +371,5 @@ class Java::OrgHornetqCoreClientImpl::ClientMessageImpl
   def inspect
     "#{self.class.name}:\nBody: #{body.inspect}\nAttributes: #{attributes.inspect}\nProperties: #{properties.inspect}"
   end
-
+  
 end

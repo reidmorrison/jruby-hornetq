@@ -284,17 +284,16 @@ module Java::org.hornetq.api.core.client::ClientSession
   end
     
   # To be consistent create Requestor from Session
-  def create_requestor(request_address)
-    #Java::org.hornetq.api.core.client::ClientRequestor.new(self, request_address);
-    HornetQ::Client::RequestorPattern.new(self, request_address)
+  def create_requestor(request_address, reply_address=nil, reply_queue=nil)
+    HornetQ::Client::RequestorPattern.new(self, request_address, reply_address, reply_queue)
   end
   
   # Creates a RequestorPattern to send a request and to synchronously wait for
   # the reply, call the supplied block, then close the requestor
   # Returns the result from the block
-  def requestor(request_address,&block)
+  def requestor(request_address, reply_address=nil, reply_queue=nil, &block)
     begin
-      requestor = self.create_requestor(request_address)
+      requestor = self.create_requestor(request_address, reply_address, reply_queue)
       block.call(requestor)
     ensure
       requestor.close if requestor

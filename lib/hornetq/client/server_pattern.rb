@@ -35,6 +35,7 @@ module HornetQ::Client
         reply_message.durable = request_message.durable?
         # Send request message id back in reply message for correlation purposes
         reply_message.user_id = request_message.user_id
+        #TODO: Also need to include other attributes such as Expiry
         # Send to Reply to address supplied by the caller
         @producer.send(request_message.reply_to_address, reply_message)
         #puts "Sent reply to #{reply_to.to_s}: #{reply_message.inspect}"
