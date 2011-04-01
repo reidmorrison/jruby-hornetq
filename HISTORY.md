@@ -1,3 +1,8 @@
+## 0.4.0 (2011-04-01)
+
+* Upgrade to HornetQ 2.2.2
+* Migrate to new HornetQClient factory API's
+
 ## 0.3.0 (2011-02-16)
 
 * Rename HornetQ::Client::Factory to HornetQ::Client::Connection

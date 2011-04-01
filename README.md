@@ -3,17 +3,11 @@ jruby-hornetq
 
 * http://github.com/ClarityServices/jruby-hornetq
 
-### WARNING: Alpha code!!
-
-This code should only be used for prototyping at this time, since breaking
-changes are made between every release. Once the code goes to V1.0.0 we will
-make every effort to not break the existing interface in any way.
-
 Feedback is welcome and appreciated :)
 
 ### Introduction
 
-jruby-hornetq attempts to "rubify" the HornetQ Java libraries without 
+jruby-hornetq create a Ruby friendly API into the HornetQ Java libraries without 
 compromising performance. It does this by sprinkling "Ruby-goodness" into the
 existing HornetQ Java classes and interfaces, I.e. By adding Ruby methods to
 the existing classes and interfaces. Since jruby-hornetq exposes the HornetQ
@@ -36,15 +30,14 @@ several reasons for choosing the HornetQ Core API over its JMS API:
 * The HornetQ team recommend the Core API for performance
 * The HornetQ JMS API is just another wrapper on top of its Core API
 
-To use the JMS API, see the jruby-jms project. (Not yet released into the wild,
-let me know if you want it :) )
+To use the JMS API from JRuby see the jruby-jms project
 
 HornetQ
 -------
 
-For information on the HornetQ messaging and queuing system, see:
+For information on the HornetQ messaging and queuing system, see: http://www.jboss.org/hornetq
 
-For more documentation on any of the classes, see: http://hornetq.sourceforge.net/docs/hornetq-2.1.0.Final/api/index.html?org/hornetq/api/core/client/package-summary.html
+For more documentation on any of the classes, see: http://docs.jboss.org/hornetq/2.2.2.Final/api/index.html
 
 Concepts & Terminology
 ----------------------
