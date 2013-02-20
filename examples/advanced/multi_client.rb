@@ -21,7 +21,7 @@ def worker_thread(id, connection, timeout, request_count)
   begin
     connection.start_session do |session|
       start_time = Time.now
-  
+
       # Use Requestor (Client) Pattern to do a "RPC like" call to a server
       # Under the covers the requestor creates a temporary dynamic reply to queue
       # for the server to send the reply message to
@@ -33,7 +33,7 @@ def worker_thread(id, connection, timeout, request_count)
           message.body = "Some request data"
           # Set the user managed message id
           message.user_id = Java::org.hornetq.utils::UUIDGenerator.getInstance.generateUUID
-  
+
           if reply = requestor.request(message, timeout)
             puts "Thread[#{id}]:Received Response: #{reply.inspect}" if request_count < 10
             puts "Thread[#{id}]:  Message:[#{reply.body.inspect}]" if request_count < 10
@@ -44,7 +44,7 @@ def worker_thread(id, connection, timeout, request_count)
           puts "Thread:#{id}=>#{i}" if i%1000 == 0
         end
       end
-      
+
       duration = Time.now - start_time
       puts "\nThread[#{id}]:Made #{request_count} calls in #{duration} seconds at #{request_count/duration} synchronous requests per second"
     end

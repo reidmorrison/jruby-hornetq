@@ -2,7 +2,7 @@
 # HornetQ Requestor (Client):
 #      Submit a request and wait for a reply
 #      Uses the Requestor Pattern
-#      The Server (server.rb) must be running first, otherwise this example 
+#      The Server (server.rb) must be running first, otherwise this example
 #      program will eventually timeout
 #
 
@@ -16,7 +16,7 @@ timeout = (ARGV[0] || 5000).to_i
 
 # Using Connect.start since a session must be started in order to consume messages
 HornetQ::Client::Connection.start_session('hornetq://localhost') do |session|
-  
+
   # Create a non-durable ServerQueue to receive messages sent to the ServerAddress
   session.create_queue_ignore_exists('ServerAddress', 'ServerQueue', false)
 
@@ -27,7 +27,7 @@ HornetQ::Client::Connection.start_session('hornetq://localhost') do |session|
     # Create non-durable message
     message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
     message.body = "Some request data"
-  
+
     # Send message to the address
     puts "Send request message and wait for Reply"
     if reply = requestor.request(message, timeout)
@@ -35,6 +35,6 @@ HornetQ::Client::Connection.start_session('hornetq://localhost') do |session|
     else
       puts "Time out, No reply received after #{timeout/1000} seconds"
     end
-  
+
   end
 end

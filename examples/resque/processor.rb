@@ -21,17 +21,17 @@ HornetQ::Client::Connection.start_session('hornetq://localhost') do |session|
   rescue
     # Ignore when queue already exists
   end
-  
+
   server = session.create_server(q_name, timeout)
 
-  puts "Waiting for Requests..."  
+  puts "Waiting for Requests..."
   server.run do |request_message|
     print "."
-    
+
     # Create Reply Message
     reply_message = session.create_message(HornetQ::Client::Message::TEXT_TYPE, false)
     reply_message.body = "Echo [#{request_message.body}]"
-    
+
     # The result of the block is the message to be sent back, or nil if no reply
     reply_message
   end

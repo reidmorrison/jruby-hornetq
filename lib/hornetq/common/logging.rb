@@ -13,7 +13,7 @@ module HornetQ
     if @logger
       Java::org.hornetq.core.logging::Logger.setDelegateFactory(HornetQ::LogDelegateFactory.new)
     else
-      Java::org.hornetq.core.logging::Logger.reset      
+      Java::org.hornetq.core.logging::Logger.reset
     end
     # TODO org.hornetq.core.logging.Logger.setDelegateFactory(org.hornetq.integration.logging.Log4jLogDelegateFactory.new)
   end
@@ -41,5 +41,5 @@ module HornetQ
     # Needs an actual Java class, so give it: org.hornetq.api.core.client::HornetQClient
     Java::org.hornetq.core.logging::Logger.getLogger(org.hornetq.api.core.client::HornetQClient)
   end
- 
+
 end

@@ -16,17 +16,17 @@ class LoggingTest < Test::Unit::TestCase
       HornetQ::logger.debug 'Hello'
       HornetQ::logger.trace 'Hello'
     end
-    
+
     should 'be able to use the default HornetQ logger' do
       # Reset logger to HornetQ logger
       HornetQ::logger = nil
       log_it
     end
-    
+
     should 'be able to use the default HornetQ Ruby logger' do
       HornetQ::logger = HornetQ::ruby_logger
       log_it
     end
-    
+
   end
 end

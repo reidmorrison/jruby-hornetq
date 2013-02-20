@@ -14,7 +14,7 @@ require 'hornetq'
 HornetQ::Client::Connection.session('hornetq://localhost') do |session|
   # Create a non-durable TestQueue to receive messages sent to the TestAddress
   session.create_queue_ignore_exists('TestAddress', 'TestQueue', false)
-  
+
   # Using the Producer pattern send messages to the Address 'TestAddress'
   session.producer('TestAddress') do |producer|
     # Create a non-durable message
@@ -24,9 +24,9 @@ HornetQ::Client::Connection.session('hornetq://localhost') do |session|
     # Always set the message type prior to setting the body so that the message
     # is correctly created for you
     message.body = "#{Time.now}: ### Hello, World ###"
-  
+
     producer.send(message)
-    
+
     puts "Sent Message: #{message.inspect}"
   end
 end

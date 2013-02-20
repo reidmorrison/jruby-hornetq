@@ -10,7 +10,7 @@
 # This sample sends a total of 100 requests in batches of 10.
 # One thread sends requests and the other processes replies.
 # Once 80% of the replies are back, it will send the next batch
-#  
+#
 # Before running this sample, start server.rb first
 #
 
@@ -37,23 +37,23 @@ HornetQ::Client::Connection.connection(config[:connection]) do |connection|
   #                number of outstanding requests to have open at any time
   #                Default: 0.8
   #                (:max_outstanding_responses)
-  
+
   pattern_config = {
     :connection     => connection,
     :server_address => server_address,
     :completion_ratio => 0.8
   }
-  
+
   requestor = BatchRequestorPattern.new(connection, server_address) do |message|
     # Display an @ symbol for every reply received
     print '@'
   end
-  
+
   times = (batch_size/window_size).to_i
   puts "Performing #{times} loops"
-  
+
   times.times do |i|
-    
+
     window_size.times do |i|
       message = @session.create_message(true)
       message.type = :text
@@ -61,10 +61,10 @@ HornetQ::Client::Connection.connection(config[:connection]) do |connection|
       requestor.send(message)
       print "."
     end
-    
+
     # Wait for at least 80% of responses before sending more requests
     requestor.wait_for_outstanding_replies
-    
+
   end
   puts "Done sending requests, waiting for remaining replies"
   requestor.wait_for_all_outstanding_replies

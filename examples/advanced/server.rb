@@ -21,24 +21,24 @@ HornetQ::Client::Connection.start_session(config) do |session|
 
   count = 0
   start_time = Time.now
-  
+
   session.server('ServerQueue', timeout) do |server|
     puts "Server started and waiting for requests ..."
     server.run do |request_message|
       count += 1
       print '.'
       puts "#{count}" if count%1000 == 0
-    
+
       # Create Reply Message
       reply_message = session.create_message(HornetQ::Client::Message::TEXT_TYPE, false)
       reply_message.body = "Echo [#{request_message.body}]"
-    
+
       # The result of this block is the message to be sent back to the requestor (client)
       # Or, nil if no response should be sent back
       reply_message
     end
   end
-  
+
   duration = Time.now - start_time - timeout/1000
   puts "\nReceived #{count} requests in #{duration} seconds at #{count/duration} messages per second"
 end

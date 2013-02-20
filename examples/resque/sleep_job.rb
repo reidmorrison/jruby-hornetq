@@ -7,7 +7,7 @@ require 'resque/job_with_status' # in rails you would probably do this in an ini
 # Create a Resque Job with the ability to report status
 #
 class SleepJob < Resque::JobWithStatus
-  
+
   # Set the name of the queue to use for this Job Worker
   @queue = "sleep_job"
 
@@ -29,14 +29,14 @@ end
 if __FILE__ == $0
   # Make sure you have a worker running
   # jruby resque_worker.rb
-  
+
   count = (ARGV[0] || 10).to_i
 
   # running the job
   puts "Creating the SleepJob"
   job_id = SleepJob.create :length => count
   puts "Got back #{job_id}"
-  
+
   # check the status until its complete
   while status = Resque::Status.get(job_id) and !status.completed? && !status.failed?
     sleep 1

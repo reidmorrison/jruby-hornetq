@@ -18,10 +18,10 @@ config = YAML.load_file(File.dirname(__FILE__) + '/hornetq.yml')['development']
 
 # Create a HornetQ session
 HornetQ::Client::Connection.start_session(config) do |session|
-  
+
   # Create the non-durable TestQueue to receive messages sent to the TestAddress
   session.create_queue_ignore_exists('TestAddress', 'TestQueue', false)
-  
+
   # Consume All messages from the queue
   stats = session.consume(:queue_name => 'TestQueue', :timeout=> 0, :statistics=>true) do |message|
     print '.'
