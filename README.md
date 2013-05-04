@@ -106,19 +106,19 @@ Producer-Consumer
 
 Producer: Write messages to a queue:
 
+
     require 'rubygems'
     require 'hornetq'
 
-    HornetQ::Client::Factory.create_session(:connection => {:uri => 'hornetq://localhost'}) do |session|
-      # Create Producer so that we can send messages to the Address 'jms.queue.ExampleQueue'
-      producer = session.create_producer('jms.queue.ExampleQueue')
+    connection = HornetQ::Client::Connection.new(:uri => 'hornetq://localhost/')
+    session = connection.create_session(:username=>'guest',:password=>'secret')
 
-      # Create a non-durable message to send
-      message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
-      message << "#{Time.now}: ### Hello, World ###"
-
-      producer.send(message)
-    end
+    producer = session.create_producer('jms.queue.CMDBDataServicesQueue')
+    message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
+    message.body_buffer.write_string('Hello World')
+    producer.send(message)
+    session.close
+    connection.close
 
 
 Consumer: Read message from a queue:
