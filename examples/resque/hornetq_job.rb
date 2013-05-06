@@ -13,12 +13,12 @@ require 'sync'
 # batch files. Rather than just flood the queue with every record from a file
 # the Batch Client Pattern can be used to only send out a batch of requests at
 # a time and when sufficient responses have been received, send another batch.
-# 
+#
 # The following additional features can be implemented in this pattern
 # * Stop the batch if say 80% of records fail in the first batch, etc.
 # * Support pause and resume of batch processing
 # * Support restart and recoverability
-# 
+#
 # See the Resque example for implementations of some of the above capabilities
 #
 class BatchClientPattern
@@ -33,11 +33,11 @@ class BatchClientPattern
     @consumer = session.create_consumer(reply_queue)
     @session = session
     session.start
-    
+
     @counter_sync = Sync.new
     @processed = 0
   end
-  
+
   # Before re-using a batch pattern, reset all internal counters
   def reset
     @counter_sync.synchronize(:EX) do
@@ -45,12 +45,12 @@ class BatchClientPattern
       @sucessful = 0
     end
   end
-  
+
   # Return the current message count
   def processed
     @counter_sync.synchronize(:SH) { @sucessful + @processed }
   end
-  
+
   # Increment Successful response counter by supplied count
   def inc_sucessful(count=1)
     @counter_sync.synchronize(:EX) { @sucessful += count }
@@ -60,7 +60,7 @@ class BatchClientPattern
   def sucessful
     @counter_sync.synchronize(:SH) { @sucessful }
   end
-  
+
   # Increment Successful response counter by supplied count
   def inc_failed(count=1)
     @counter_sync.synchronize(:EX) { @failed += count }
@@ -70,7 +70,7 @@ class BatchClientPattern
   def failed
     @counter_sync.synchronize(:SH) { @failed }
   end
-  
+
   # Send x messages
   def send(total_count)
     #print "Sending #{total_count} messages"
@@ -86,7 +86,7 @@ class BatchClientPattern
     duration = Time.now - start_time
     #printf "\nSend %5d msg, %5.2f s, %10.2f msg/s\n", total_count, duration, total_count/duration
   end
-  
+
   # Receive Reply messages calling the supplied block for each message
   # passing in the message received from the server.
   # After the block returns, the message is automatically acknowledged
@@ -102,7 +102,7 @@ class BatchClientPattern
       p exc
     end
   end
-  
+
   def close
     @producer.close
     @consumer.close
@@ -116,7 +116,7 @@ end
 # Create a Resque Job with the ability to report status
 #
 class HornetQJob < Resque::JobWithStatus
-  
+
   # Set the name of the queue to use for this Job Worker
   @queue = "hornetq_job"
 
@@ -126,14 +126,14 @@ class HornetQJob < Resque::JobWithStatus
     batching_size  = (options['batching_size'] || 80).to_i
     address        = options['address'] || 'processor'
     receive_thread = nil
-    
+
     # Create a HornetQ session
     count = 0
     HornetQ::Client::Connection.session('hornetq://localhost') do |session|
       batching_size = total_count if batching_size > total_count
-  
+
       client = BatchClient.new(session, address)
-  
+
       # Start receive thread
       receive_thread = Thread.new do
         client.receive do |message|
@@ -141,7 +141,7 @@ class HornetQJob < Resque::JobWithStatus
           client.inc_sucessful
         end
       end
-  
+
       times = (total_count/batching_size).to_i
       puts "Performing #{times} loops"
       times.times do |i|
@@ -156,11 +156,11 @@ class HornetQJob < Resque::JobWithStatus
           #puts "\nReceived #{received_count} messages"
           if received_count >= 0.8 * count
             puts ""
-            break 
+            break
           end
         end
       end
-  
+
       while client.counter < total_count
         sleep 0.1
         print "*"
@@ -177,7 +177,7 @@ end
 if __FILE__ == $0
   # Make sure you have a worker running
   # jruby resque_worker.rb
-  
+
   options = {
     'total_count' => (ARGV[0] || 4000).to_i,
     'batching_size' => (ARGV[1] || 40).to_i,
@@ -187,7 +187,7 @@ if __FILE__ == $0
   puts "Creating the HornetQJob"
   job_id = HornetQJob.create(options)
   puts "Got back #{job_id}"
-  
+
   # check the status until its complete
   while status = Resque::Status.get(job_id) and !status.completed? && !status.failed? &&!status.killed?
     sleep 1

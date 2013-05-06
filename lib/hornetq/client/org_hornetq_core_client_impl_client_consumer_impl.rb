@@ -5,29 +5,29 @@
 #
 # Other methods still directly accessible through this class:
 #
-# void 	close()
+# void   close()
 #          Closes the consumer
-#          
-# boolean 	closed?
+#
+# boolean   closed?
 #          Returns whether the consumer is closed or not
 #
-# Note: receive can be used directly, but it is recommended to use #each where possible 
-#                    
+# Note: receive can be used directly, but it is recommended to use #each where possible
+#
 # ClientMessage   receive()
 #          Receives a message from a queue
 #          Wait forever until a message is received
-# ClientMessage 	receive(long timeout)
+# ClientMessage   receive(long timeout)
 #          Receives a message from a queue
 #          Returns nil if no message was received after timeout milliseconds
 # ClientMessage   receive_immediate()
 #          Receives a message from a queue
 #          Return immediately if no message is available on the queue
 #          Returns nil if no message available
-#          
+#
 class Java::org.hornetq.core.client.impl::ClientConsumerImpl
-  
+
   # For each message available to be consumed call the block supplied
-  # 
+  #
   # Returns the statistics gathered when :statistics => true, otherwise nil
   #
   # Parameters:
@@ -69,7 +69,7 @@ class Java::org.hornetq.core.client.impl::ClientConsumerImpl
         :messages_per_second => (message_count/duration).to_i}
     end
   end
-  
+
   # Receive messages in a separate thread when they arrive
   # Allows messages to be received in a separate thread. I.e. Asynchronously
   # This method will return to the caller before messages are processed.
@@ -101,7 +101,7 @@ class Java::org.hornetq.core.client.impl::ClientConsumerImpl
     raise "First call Consumer::on_message with :statistics=>true before calling Consumer::statistics()" unless stats
     stats
   end
-  
+
   private
   def receive_with_timeout(timeout)
     if timeout == -1

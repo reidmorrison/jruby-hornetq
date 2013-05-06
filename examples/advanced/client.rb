@@ -2,8 +2,8 @@
 # HornetQ Requestor:
 #      Submit a request and wait for a reply
 #      Uses the Requestor Pattern
-#      
-#      The Server (server.rb) must be running first, otherwise this example 
+#
+#      The Server (server.rb) must be running first, otherwise this example
 #      program will eventually timeout
 #      Displays a '.' for every request completed
 #      Used for performance measurements
@@ -26,7 +26,7 @@ HornetQ::Client::Connection.start_session(config) do |session|
   # Create a non-durable ServerQueue to receive messages sent to the ServerAddress
   session.create_queue_ignore_exists('ServerAddress', 'ServerQueue', false)
   start_time = Time.now
-  
+
   # Use Requestor (Client) Pattern to do a "RPC like" call to a server
   # Under the covers the requestor creates a temporary dynamic reply to queue
   # for the server to send the reply message to
@@ -38,7 +38,7 @@ HornetQ::Client::Connection.start_session(config) do |session|
       message.body = "Some request data"
       # Set the user managed message id
       message.user_id = Java::org.hornetq.utils::UUIDGenerator.getInstance.generateUUID
-  
+
       if reply = requestor.request(message, timeout)
         puts "Received Response: #{reply.inspect}" if count < 10
         puts "  Message:[#{reply.body.inspect}]" if count < 10
@@ -47,7 +47,7 @@ HornetQ::Client::Connection.start_session(config) do |session|
         puts "Time out, No reply received after #{timeout/1000} seconds"
       end
       puts "#{i}" if i%1000 == 0
-  
+
     end
   end
 

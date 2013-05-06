@@ -27,9 +27,9 @@ module HornetQ
 
   # Convert string into a HornetQ SimpleString
   def self.as_simple_string(str)
-   str.is_a?(Java::org.hornetq.api.core::SimpleString) ? str : Java::org.hornetq.api.core::SimpleString.new(str.to_s) 
+   str.is_a?(Java::org.hornetq.api.core::SimpleString) ? str : Java::org.hornetq.api.core::SimpleString.new(str.to_s)
   end
-  
+
 end
 
 require 'hornetq/server'

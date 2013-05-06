@@ -7,7 +7,7 @@ Feedback is welcome and appreciated :)
 
 ### Introduction
 
-jruby-hornetq create a Ruby friendly API into the HornetQ Java libraries without 
+jruby-hornetq create a Ruby friendly API into the HornetQ Java libraries without
 compromising performance. It does this by sprinkling "Ruby-goodness" into the
 existing HornetQ Java classes and interfaces, I.e. By adding Ruby methods to
 the existing classes and interfaces. Since jruby-hornetq exposes the HornetQ
@@ -51,7 +51,7 @@ messages. The consumer does not have to be running in order to receive messages.
 ### Address
 
 In traditional messaging and queuing systems there is only a queue when both
-read and writing messages. With the advent of AMQP and in HornetQ we now have 
+read and writing messages. With the advent of AMQP and in HornetQ we now have
 the concept of an Address which is different from a Queue.
 
 An Address can be thought of the address we would put on an envelope before
@@ -69,7 +69,7 @@ overhead of a disk write every time it is read or written (produced or consumed)
 ### Broker
 
 HornetQ is a broker based architecture which requires the use of one or more
-centralized brokers. A broker is much like the "server" through which all 
+centralized brokers. A broker is much like the "server" through which all
 messages pass through.
 
 An in-vm broker can be used for passing messages around within a Java
@@ -98,7 +98,7 @@ jruby-hornetq is primarily intended to make it easy to use the HornetQ client
 core API. It also supports running the HornetQ broker for scenarios such as
 in-vm messaging.
 
-The examples below address some of the messaging patterns that are used in 
+The examples below address some of the messaging patterns that are used in
 messaging and queuing.
 
 Producer-Consumer
@@ -106,29 +106,29 @@ Producer-Consumer
 
 Producer: Write messages to a queue:
 
-    require 'rubygems'
-    require 'hornetq'
-    
-    HornetQ::Client::Factory.create_session(:connection => {:uri => 'hornetq://localhost'}) do |session|
-      # Create Producer so that we can send messages to the Address 'jms.queue.ExampleQueue'
-      producer = session.create_producer('jms.queue.ExampleQueue')
-      
-      # Create a non-durable message to send
-      message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
-      message << "#{Time.now}: ### Hello, World ###"
-      
-      producer.send(message)
-    end
-
-
-Consumer: Read message from a queue: 
 
     require 'rubygems'
     require 'hornetq'
-    
+
+    connection = HornetQ::Client::Connection.new(:uri => 'hornetq://localhost/')
+    session = connection.create_session(:username=>'guest',:password=>'secret')
+
+    producer = session.create_producer('jms.queue.CMDBDataServicesQueue')
+    message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
+    message.body_buffer.write_string('Hello World')
+    producer.send(message)
+    session.close
+    connection.close
+
+
+Consumer: Read message from a queue:
+
+    require 'rubygems'
+    require 'hornetq'
+
     HornetQ::Client::Factory.start(:connection => {:uri => 'hornetq://localhost'}) do |session|
       consumer = session.create_consumer('jms.queue.ExampleQueue')
-      
+
       # Receive a single message, return immediately if no message available
       if message = consumer.receive_immediate
         puts "Received:[#{message.body}]"
@@ -145,25 +145,25 @@ Server: Receive requests and send back a reply
 
     require 'rubygems'
     require 'hornetq'
-    
+
     # Shutdown Server after 5 minutes of inactivity, set to 0 to wait forever
     timeout = 300000
-    
+
     HornetQ::Client::Factory.start(:connection => {:uri => 'hornetq://localhost'}) do |session|
       server = session.create_server('jms.queue.ExampleQueue', timeout)
-    
-      puts "Waiting for Requests..."  
+
+      puts "Waiting for Requests..."
       server.run do |request_message|
         puts "Received:[#{request_message.body}]"
-        
+
         # Create Reply Message
         reply_message = session.create_message(HornetQ::Client::Message::TEXT_TYPE, false)
         reply_message.body = "Echo [#{request_message.body}]"
-        
+
         # The result of the block is the message to be sent back to the client
         reply_message
       end
-    
+
       # Server will stop after timeout period after no messages received
       server.close
     end
@@ -173,17 +173,17 @@ Client: Send a request and wait for a reply
 
     require 'rubygems'
     require 'hornetq'
-    
+
     # Wait 5 seconds for a reply
     timeout = 5000
-    
+
     HornetQ::Client::Factory.start(:connection => {:uri => 'hornetq://localhost'}) do |session|
       requestor = session.create_requestor('jms.queue.ExampleQueue')
-    
+
       # Create non-durable message
       message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
       message.body = "Request Current Time"
-      
+
       # Send message to the queue
       puts "Send request message and wait for Reply"
       if reply = requestor.request(message, timeout)
@@ -192,7 +192,7 @@ Client: Send a request and wait for a reply
       else
         puts "Time out, No reply received after #{timeout/1000} seconds"
       end
-      
+
       requestor.close
     end
 
@@ -228,7 +228,7 @@ The libraries required for the HornetQ Client and to start a simple Core API
 only Broker are included with the Gem.
 
 ### GenePool
- 
+
 GenePool is used to implement session pooling
 
 Running the Broker

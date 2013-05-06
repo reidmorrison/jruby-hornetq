@@ -1,10 +1,10 @@
 #
 # HornetQ Requestor using session_pooling:
-#      Multithreaded clients all doing requests. 
-#      
+#      Multithreaded clients all doing requests.
+#
 #      Shows how the same session can be used safely on different threads
 #      rather than each thread having to create its own session
-#      
+#
 #      Typical scenario is in a Rails app when we need to do a call to a
 #      remote server and block until a response is received
 #

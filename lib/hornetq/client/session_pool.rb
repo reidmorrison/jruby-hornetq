@@ -58,11 +58,11 @@ module HornetQ::Client
         @pool.with_connection &block
       end
 
-      # Obtain a session from the pool and create a ClientConsumer. 
-      # Pass both into the supplied block. 
+      # Obtain a session from the pool and create a ClientConsumer.
+      # Pass both into the supplied block.
       # Once the block is complete the consumer is closed and the session is
       # returned to the pool.
-      # 
+      #
       # See  HornetQ::Client::ClientConsumer for more information on the consumer
       #      parameters
       #
@@ -82,12 +82,12 @@ module HornetQ::Client
           end
         end
       end
-      
-      # Obtain a session from the pool and create a ClientProducer. 
-      # Pass both into the supplied block. 
+
+      # Obtain a session from the pool and create a ClientProducer.
+      # Pass both into the supplied block.
       # Once the block is complete the consumer is closed and the session is
       # returned to the pool.
-      # 
+      #
       # See  HornetQ::Client::ClientProducer for more information on the producer
       #      parameters
       #
@@ -108,12 +108,12 @@ module HornetQ::Client
           end
         end
       end
-      
+
       # Obtain a session from the pool and create a Client::Requestor.
-      # Pass both into the supplied block. 
+      # Pass both into the supplied block.
       # Once the block is complete the requestor is closed and the session is
       # returned to the pool.
-      # 
+      #
       # See  HornetQ::Client::Requestor for more information on the requestor
       #
       # Example
@@ -131,12 +131,12 @@ module HornetQ::Client
           end
         end
       end
-      
+
       # Obtain a session from the pool and create a Client::Server.
-      # Pass both into the supplied block. 
+      # Pass both into the supplied block.
       # Once the block is complete the requestor is closed and the session is
       # returned to the pool.
-      # 
+      #
       # See  HornetQ::Client::Server for more information on the server
       #
       # Example
@@ -154,10 +154,10 @@ module HornetQ::Client
           end
         end
       end
-      
+
       # Immediately Close all sessions in the pool and release from the pool
-      # 
-      # TODO: Allow an option to wait for active sessions to be returned before 
+      #
+      # TODO: Allow an option to wait for active sessions to be returned before
       #       closing
       def close
         @pool.each do |s|
@@ -166,9 +166,9 @@ module HornetQ::Client
           #@pool.remove(s)
         end
       end
-      
+
     end
-    
+
   end
 
 end

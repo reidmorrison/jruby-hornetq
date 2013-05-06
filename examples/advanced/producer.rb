@@ -20,7 +20,7 @@ HornetQ::Client::Connection.session(config) do |session|
   # Create a non-durable TestQueue to receive messages sent to the TestAddress
   session.create_queue_ignore_exists('TestAddress', 'TestQueue', false)
   start_time = Time.now
-  
+
   session.producer('TestAddress') do |producer|
     puts "Sending messages"
     (1..count).each do |i|
@@ -28,12 +28,12 @@ HornetQ::Client::Connection.session(config) do |session|
       message.body = "#{Time.now}: ### Hello, World ###"
       message.body = "#{Time.now}: #{i} : ### Hello, World ###"
       message.user_id = Java::org.hornetq.utils::UUIDGenerator.getInstance.generateUUID
-      
+
       producer.send(message)
       puts "#{i}\n" if i%1000 == 0
     end
   end
-  
+
   duration = Time.now - start_time
   puts "Delivered #{count} messages in #{duration} seconds at #{count/duration} messages per second"
 end

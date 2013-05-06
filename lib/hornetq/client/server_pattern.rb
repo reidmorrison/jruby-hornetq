@@ -1,5 +1,5 @@
 module HornetQ::Client
-  # Create a Server following the ServerPattern for receiving requests and 
+  # Create a Server following the ServerPattern for receiving requests and
   # replying to arbitrary queues
   # Create an instance of this class per thread
   class ServerPattern
@@ -9,13 +9,13 @@ module HornetQ::Client
       @producer = session.create_producer
       @timeout = timeout
     end
-  
+
     def run(&block)
       while request_message = @consumer.receive(@timeout)
         # Block should return a message reply object, pass in request
         # TODO: ensure..
         reply_message = block.call(request_message)
-      
+
         # Send a reply?
         reply(request_message, reply_message) if request_message.request?
         request_message.acknowledge
@@ -42,7 +42,7 @@ module HornetQ::Client
       end
       request_message.acknowledge
     end
-  
+
     # Close out resources
     def close
       @consumer.close if @consumer

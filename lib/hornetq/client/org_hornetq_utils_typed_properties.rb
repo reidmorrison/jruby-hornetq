@@ -1,6 +1,6 @@
 # Used by HornetQ to move around HashMap messages
 # Ruby methods added to make it behave like a Ruby Hash
-class Java::org.hornetq.utils::TypedProperties 
+class Java::org.hornetq.utils::TypedProperties
   # Get a property
   def [](key)
     value = getProperty(key)
@@ -28,7 +28,7 @@ class Java::org.hornetq.utils::TypedProperties
       putSimpleStringProperty(key,val.to_s)
     end
   end
-  
+
   # Iterate through each key,value pair
   def each_pair(&proc)
     it = property_names.iterator
@@ -37,23 +37,23 @@ class Java::org.hornetq.utils::TypedProperties
       proc.call(key.to_string, self[key])
     end
   end
-  
+
   # Convert Properties to a Ruby Hash
   def to_h
     h = {}
-    each_pair do |key, value| 
+    each_pair do |key, value|
       h[key] = value
     end
     h
   end
-  
+
   # Write Hash values into this TyedProperties instance
   def from_h(hash)
     hash.each_pair do |key,value|
       self[key] = value
     end
   end
-  
+
   def inspect
     "#{self.class.name}: #{to_h.inspect}"
   end

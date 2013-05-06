@@ -20,18 +20,18 @@ HornetQ::Client::Connection.start_session(:connection=> {:uri => 'hornetq://loca
   session.create_queue_ignore_exists('ServerAddress', 'ServerQueue', false)
 
   session.server('ServerQueue', timeout) do |server|
-    puts "Waiting for Requests..."  
+    puts "Waiting for Requests..."
     server.run do |request_message|
       puts "Received:[#{request_message.inspect}]"
-    
+
       # Create Reply Message
       reply_message = session.create_message(HornetQ::Client::Message::TEXT_TYPE, false)
       reply_message.body = "Echo [#{request_message.body}]"
-    
+
       # The result of this block is the message to be sent back to the requestor (client)
       # Or, nil if no response should be sent back
       reply_message
     end
   end
-  
+
 end
