@@ -2,8 +2,11 @@ module HornetQ
   module Server
     # Only load as needed
     def self.load_requirements
-      HornetQ.require_jar 'hornetq-core'
+      HornetQ.require_jar 'jnp-client'
       HornetQ.require_jar 'netty'
+      HornetQ.require_jar 'hornetq-commons'
+      HornetQ.require_jar 'hornetq-journal'
+      HornetQ.require_jar 'hornetq-server'
       require 'hornetq/server/org_hornetq_core_server_hornet_q_server'
     end
 

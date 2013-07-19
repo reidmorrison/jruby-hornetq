@@ -32,6 +32,7 @@ module HornetQ
 
 end
 
+require 'hornetq/version'
 require 'hornetq/server'
 require 'hornetq/client'
 require 'hornetq/uri'

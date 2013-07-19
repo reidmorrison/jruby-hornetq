@@ -3,8 +3,6 @@ jruby-hornetq
 
 * http://github.com/ClarityServices/jruby-hornetq
 
-Feedback is welcome and appreciated :)
-
 ### Introduction
 
 jruby-hornetq create a Ruby friendly API into the HornetQ Java libraries without
@@ -37,7 +35,7 @@ HornetQ
 
 For information on the HornetQ messaging and queuing system, see: http://www.jboss.org/hornetq
 
-For more documentation on any of the classes, see: http://docs.jboss.org/hornetq/2.2.2.Final/api/index.html
+For more documentation on any of the classes, see: http://docs.jboss.org/hornetq/2.3.0.Final/docs/api/hornetq-client/
 
 Concepts & Terminology
 ----------------------

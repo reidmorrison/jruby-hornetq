@@ -4,3 +4,4 @@ nbproject/*
 .idea
 data
 data_backup
+Gemfile.lock

@@ -1,3 +1,9 @@
+## 0.5.0.alpha (2012-07-19)
+
+* Upgrade to HornetQ 2.3
+* HornetQ removed its own built-in logging classes, so corresponding
+  logging classes removed from jruby-hornetq
+
 ## 0.4.0 (2011-04-01)
 
 * Upgrade to HornetQ 2.2.2
