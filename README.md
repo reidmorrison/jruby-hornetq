@@ -1,11 +1,11 @@
 jruby-hornetq
 =============
 
-* http://github.com/ClarityServices/jruby-hornetq
+* http://github.com/reidmorrison/jruby-hornetq
 
 ### Introduction
 
-jruby-hornetq create a Ruby friendly API into the HornetQ Java libraries without
+jruby-hornetq creates a Ruby friendly API into the HornetQ Java libraries without
 compromising performance. It does this by sprinkling "Ruby-goodness" into the
 existing HornetQ Java classes and interfaces, I.e. By adding Ruby methods to
 the existing classes and interfaces. Since jruby-hornetq exposes the HornetQ
@@ -17,7 +17,9 @@ interact with HornetQ in a highly performant way
 
 ### Install
 
-  gem install jruby-hornetq
+```ruby
+gem install jruby-hornetq
+```
 
 ### Important
 
@@ -28,21 +30,21 @@ several reasons for choosing the HornetQ Core API over its JMS API:
 * The HornetQ team recommend the Core API for performance
 * The HornetQ JMS API is just another wrapper on top of its Core API
 
-To use the JMS API from JRuby see the jruby-jms project
+To use the JMS API from JRuby see the [jruby-jms](https://github.com/reidmorrison/jruby-jms) project
 
 HornetQ
 -------
 
 For information on the HornetQ messaging and queuing system, see: http://www.jboss.org/hornetq
 
-For more documentation on any of the classes, see: http://docs.jboss.org/hornetq/2.3.0.Final/docs/api/hornetq-client/
+For more documentation on any of the classes, see: [HornetQ Documentation](http://docs.jboss.org/hornetq/2.3.0.Final/docs/api/hornetq-client/)
 
 Concepts & Terminology
 ----------------------
 
 ### Queue
 
-In order to read messages a consumer needs to the read messages from a queue.
+In order to read messages a consumer needs to read messages from a queue.
 The queue is defined prior to the message being sent and is used to hold the
 messages. The consumer does not have to be running in order to receive messages.
 
@@ -76,7 +78,11 @@ for passing messages between threads in the same JVM.
 
 ### Consumer
 
+Consumers read or consume messages from queues
+
 ### Producer
+
+Producers send, write, or publish messages
 
 ### Asynchronous Messaging
 
@@ -84,17 +90,18 @@ It is recommended to keep the state of the message flow in the message itself.
 
 ### Synchronous Messaging
 
-### Messaging Patterns
+A producer can be used to send a message that contains the address to which a reply should be sent. Then a consumer would be used to wait for a reply from target.
 
-### Message Priority
+Use of any Queueing system should considered carefully for synchronous messaging since the immediate feedback of failures downstream is not present. The only indicator of a failure is that no response was received.
 
+Direct TCP or HTTP communications in this case can be useful.
 
 Overview
 --------
 
 jruby-hornetq is primarily intended to make it easy to use the HornetQ client
 core API. It also supports running the HornetQ broker for scenarios such as
-in-vm messaging.
+ messaging within the Java Virtual Machine.
 
 The examples below address some of the messaging patterns that are used in
 messaging and queuing.
@@ -104,96 +111,99 @@ Producer-Consumer
 
 Producer: Write messages to a queue:
 
+```ruby
+require 'rubygems'
+require 'hornetq'
 
-    require 'rubygems'
-    require 'hornetq'
+connection = HornetQ::Client::Connection.new(:uri => 'hornetq://localhost/')
+session = connection.create_session(:username=>'guest',:password=>'secret')
 
-    connection = HornetQ::Client::Connection.new(:uri => 'hornetq://localhost/')
-    session = connection.create_session(:username=>'guest',:password=>'secret')
-
-    producer = session.create_producer('jms.queue.CMDBDataServicesQueue')
-    message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
-    message.body_buffer.write_string('Hello World')
-    producer.send(message)
-    session.close
-    connection.close
-
+producer = session.create_producer('jms.queue.CMDBDataServicesQueue')
+message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
+message.body_buffer.write_string('Hello World')
+producer.send(message)
+session.close
+connection.close
+```
 
 Consumer: Read message from a queue:
 
-    require 'rubygems'
-    require 'hornetq'
+```ruby
+require 'rubygems'
+require 'hornetq'
 
-    HornetQ::Client::Factory.start(:connection => {:uri => 'hornetq://localhost'}) do |session|
-      consumer = session.create_consumer('jms.queue.ExampleQueue')
-
-      # Receive a single message, return immediately if no message available
-      if message = consumer.receive_immediate
-        puts "Received:[#{message.body}]"
-        message.acknowledge
-      else
-        puts "No message found"
-      end
-    end
+HornetQ::Client::Factory.start(:connection => {:uri => 'hornetq://localhost'}) do |session|
+consumer = session.create_consumer('jms.queue.ExampleQueue')
+  # Receive a single message, return immediately if no message available
+  if message = consumer.receive_immediate
+    puts "Received:[#{message.body}]"
+    message.acknowledge
+  else
+    puts "No message found"
+  end
+end
+```
 
 Client-Server
 -------------
 
 Server: Receive requests and send back a reply
 
-    require 'rubygems'
-    require 'hornetq'
+```ruby
+require 'rubygems'
+require 'hornetq'
 
-    # Shutdown Server after 5 minutes of inactivity, set to 0 to wait forever
-    timeout = 300000
+# Shutdown Server after 5 minutes of inactivity, set to 0 to wait forever
+timeout = 300000
 
-    HornetQ::Client::Factory.start(:connection => {:uri => 'hornetq://localhost'}) do |session|
-      server = session.create_server('jms.queue.ExampleQueue', timeout)
+HornetQ::Client::Factory.start(:connection => {:uri => 'hornetq://localhost'}) do |session|
+  server = session.create_server('jms.queue.ExampleQueue', timeout)
 
-      puts "Waiting for Requests..."
-      server.run do |request_message|
-        puts "Received:[#{request_message.body}]"
+  puts "Waiting for Requests..."
+  server.run do |request_message|
+    puts "Received:[#{request_message.body}]"
 
-        # Create Reply Message
-        reply_message = session.create_message(HornetQ::Client::Message::TEXT_TYPE, false)
-        reply_message.body = "Echo [#{request_message.body}]"
+    # Create Reply Message
+    reply_message = session.create_message(HornetQ::Client::Message::TEXT_TYPE, false)
+     reply_message.body = "Echo [#{request_message.body}]"
 
-        # The result of the block is the message to be sent back to the client
-        reply_message
-      end
+    # The result of the block is the message to be sent back to the client
+    reply_message
+  end
 
-      # Server will stop after timeout period after no messages received
-      server.close
-    end
-
+  # Server will stop after timeout period after no messages received
+  server.close
+end
+```
 
 Client: Send a request and wait for a reply
 
-    require 'rubygems'
-    require 'hornetq'
+```ruby
+require 'rubygems'
+require 'hornetq'
 
-    # Wait 5 seconds for a reply
-    timeout = 5000
+# Wait 5 seconds for a reply
+timeout = 5000
 
-    HornetQ::Client::Factory.start(:connection => {:uri => 'hornetq://localhost'}) do |session|
-      requestor = session.create_requestor('jms.queue.ExampleQueue')
+HornetQ::Client::Factory.start(:connection => {:uri => 'hornetq://localhost'}) do |session|
+  requestor = session.create_requestor('jms.queue.ExampleQueue')
 
-      # Create non-durable message
-      message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
-      message.body = "Request Current Time"
+  # Create non-durable message
+  message = session.create_message(HornetQ::Client::Message::TEXT_TYPE,false)
+  message.body = "Request Current Time"
 
-      # Send message to the queue
-      puts "Send request message and wait for Reply"
-      if reply = requestor.request(message, timeout)
-        puts "Received Response: #{reply.inspect}"
-        puts "  Message: #{reply.body.inspect}"
-      else
-        puts "Time out, No reply received after #{timeout/1000} seconds"
-      end
+  # Send message to the queue
+  puts "Send request message and wait for Reply"
+  if reply = requestor.request(message, timeout)
+    puts "Received Response: #{reply.inspect}"
+    puts "  Message: #{reply.body.inspect}"
+  else
+    puts "Time out, No reply received after #{timeout/1000} seconds"
+  end
 
-      requestor.close
-    end
-
+  requestor.close
+end
+```
 
 Threading
 ---------
@@ -206,14 +216,6 @@ that thread blocked on ClientConsumer::receive
 A timeout can be used if the thread needs to do any other work. At this time
 it is Not recommended to use ClientConsumer::receive_immediate across
 multiple threads due to known issues in HornetQ with this API.
-
-### Example
-
-Logging
--------
-
-Dependencies
-------------
 
 ### JRuby
 
@@ -239,12 +241,16 @@ client, it also supports using JRuby to launch a Broker instance
 
 #### Starting up a standalone hornetq server:
 
-  bin/hornetq_server examples/server/standalone_server.yml
+```sh
+bin/hornetq_server examples/server/standalone_server.yml
+```
 
 #### Starting up a backup/live combination
 
-  bin/hornetq_server examples/server/backup_server.yml
-  bin/hornetq_server examples/server/live_server.yml
+```sh
+bin/hornetq_server examples/server/backup_server.yml
+bin/hornetq_server examples/server/live_server.yml
+```
 
 Development
 -----------
@@ -253,9 +259,11 @@ Want to contribute to jruby-hornetq?
 
 First clone the repo and run the tests:
 
-    git clone git://github.com/reidmorrison/jruby-hornetq.git
-    cd jruby-hornetq
-    jruby -S rake test
+```sh
+git clone git://github.com/reidmorrison/jruby-hornetq.git
+cd jruby-hornetq
+jruby -S rake test
+```
 
 Feel free to ping the mailing list with any issues and we'll try to resolve it.
 
@@ -270,10 +278,6 @@ Once you've made your great commits:
 3. Push to your branch - `git push origin my_branch`
 4. Create an [Issue](http://github.com/reidmorrison/jruby-hornetq/issues) with a link to your branch
 5. That's it!
-
-You might want to checkout our [Contributing][cb] wiki page for information
-on coding standards, new features, etc.
-
 
 Meta
 ----
@@ -290,20 +294,20 @@ This project uses [Semantic Versioning](http://semver.org/).
 Authors
 -------
 
-Reid Morrison :: rubywmq@gmail.com :: @reidmorrison
+Reid Morrison :: reidmo@gmail.com :: @reidmorrison
 
 Brad Pardee :: bpardee@gmail.com
 
 License
 -------
 
-Copyright 2011 Clarity Services, Inc.
+Copyright 2014 Reid Morrison, Brad Pardee
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+  http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
