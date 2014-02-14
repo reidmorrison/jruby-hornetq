@@ -283,10 +283,8 @@ Meta
 ----
 
 * Code: `git clone git://github.com/ClarityServices/jruby-hornetq.git`
-* Home: <https://github.com/ClarityServices/jruby-hornetq>
-* Docs: TODO <http://ClarityServices.github.com/jruby-hornetq/>
+* Home: <https://github.com/reidmorrison/jruby-hornetq>
 * Bugs: <http://github.com/reidmorrison/jruby-hornetq/issues>
-* List: TODO
 * Gems: <http://rubygems.org/gems/jruby-hornetq>
 
 This project uses [Semantic Versioning](http://semver.org/).
